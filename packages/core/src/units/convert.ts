@@ -1,5 +1,5 @@
 import { densityFor } from './density';
-import { getUnit, type MeasurementSystem, type UnitDef } from './units';
+import { getUnit, type Dimension, type MeasurementSystem } from './units';
 
 /**
  * Convert a quantity between units. Mass↔volume needs a density (g/ml), e.g. from `densityFor(item)`.
@@ -9,7 +9,7 @@ export function convert(
   value: number,
   from: string,
   to: string,
-  density?: number,
+  gPerMl?: number,
 ): number | undefined {
   if (from === to) return value;
   const a = getUnit(from);
@@ -17,18 +17,18 @@ export function convert(
   if (!a?.toBase || !b?.toBase) return undefined;
   const base = value * a.toBase;
   if (a.dimension === b.dimension) return base / b.toBase;
-  if (density === undefined) return undefined;
+  if (gPerMl === undefined) return undefined;
   if (a.dimension === 'volume' && b.dimension === 'mass')
-    return (base * density) / b.toBase;
+    return (base * gPerMl) / b.toBase;
   if (a.dimension === 'mass' && b.dimension === 'volume')
-    return base / density / b.toBase;
+    return base / gPerMl / b.toBase;
   return undefined;
 }
 
 // Units we choose between when presenting a quantity in a given system, smallest first.
 const DISPLAY_UNITS: Record<
   MeasurementSystem,
-  Partial<Record<UnitDef['dimension'], string[]>>
+  Partial<Record<Dimension, string[]>>
 > = {
   metric: { mass: ['g', 'kg'], volume: ['ml', 'l'], length: ['mm', 'cm'] },
   us: { mass: ['oz', 'lb'], volume: ['tsp', 'tbsp', 'cup'], length: ['inch'] },
@@ -51,32 +51,37 @@ export interface ConvertedQuantity {
 
 /**
  * Express a quantity in the target measurement system using the most readable unit
- * (e.g. 1500 g → 1.5 kg; 250 ml → 1 cup). Pass `item` to allow mass↔volume conversion when the target
- * system would rather use the other dimension (e.g. US cups of flour → grams). Returns undefined for
- * count units or when conversion isn't possible.
+ * (1500 g → 1.5 kg; 250 ml → 1 cup). Spoons are kept as they are in both systems.
+ *
+ * With `item`, known ingredients switch dimension the way each system's cooks expect: metric weighs
+ * solids (1 cup flour → 125 g) but keeps liquids in ml; US measures by volume (125 g flour → 1 cup).
+ *
+ * Returns undefined for count units or when conversion isn't possible.
  */
 export function toSystem(
   value: number,
   unitCode: string,
   system: MeasurementSystem,
-  options: { item?: string; preferDimension?: 'mass' | 'volume' } = {},
+  options: { item?: string } = {},
 ): ConvertedQuantity | undefined {
   const unit = getUnit(unitCode);
   if (!unit?.toBase || unit.dimension === 'count') return undefined;
-  if (unit.system === system && !options.preferDimension)
-    return { value, unit: unitCode };
+  if (!unit.system) return { value, unit: unitCode };
 
-  let dimension = options.preferDimension ?? unit.dimension;
   const density = options.item ? densityFor(options.item) : undefined;
-  if (dimension !== unit.dimension && density === undefined)
-    dimension = unit.dimension;
+  let dimension = unit.dimension;
+  if (density && (unit.dimension === 'mass' || unit.dimension === 'volume')) {
+    dimension = system === 'us' || density.liquid ? 'volume' : 'mass';
+  }
+  if (unit.system === system && dimension === unit.dimension)
+    return { value, unit: unitCode };
 
   const candidates = DISPLAY_UNITS[system][dimension];
   if (!candidates) return undefined;
 
   let best: ConvertedQuantity | undefined;
   for (const code of candidates) {
-    const converted = convert(value, unitCode, code, density);
+    const converted = convert(value, unitCode, code, density?.gPerMl);
     if (converted === undefined) continue;
     if (!best || converted >= (STEP_UP_AT[code] ?? 0))
       best = { value: converted, unit: code };

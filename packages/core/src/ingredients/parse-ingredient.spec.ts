@@ -84,6 +84,27 @@ describe('parseIngredientLine', () => {
       { qtyMin: 2, unit: 'cm', item: 'piece ginger', prepNote: 'grated' },
     ],
     ['1 cup of sugar', { qtyMin: 1, unit: 'cup', item: 'sugar' }],
+    ['1-1/2 cups flour', { qtyMin: 1.5, unit: 'cup', item: 'flour' }],
+    [
+      '2 x 400g tins chopped tomatoes',
+      { qtyMin: 2, unit: 'tin', item: 'chopped tomatoes', note: '400g' },
+    ],
+    [
+      '1 x 400g can chickpeas, drained',
+      {
+        qtyMin: 1,
+        unit: 'can',
+        item: 'chickpeas',
+        prepNote: 'drained',
+        note: '400g',
+      },
+    ],
+    [
+      '100ml/3½fl oz milk',
+      { qtyMin: 100, unit: 'ml', item: 'milk', note: '3½fl oz' },
+    ],
+    ['1 lb 2 oz beef mince', { qtyMin: 18, unit: 'oz', item: 'beef mince' }],
+    ['1. 2 cups rice', { qtyMin: 2, unit: 'cup', item: 'rice' }],
     ['Two tablespoons honey', { qtyMin: 2, unit: 'tbsp', item: 'honey' }],
     [
       'flour (plain), for dusting',

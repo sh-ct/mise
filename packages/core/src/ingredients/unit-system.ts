@@ -2,8 +2,8 @@ import type { Ingredient, RecipeUnitSystem } from '../schema/recipe';
 import { getUnit } from '../units/units';
 
 /**
- * Guess a recipe's measurement system from its ingredients. Teaspoons/tablespoons are ignored because
- * metric recipes use them too.
+ * Guess a recipe's measurement system from its ingredients. Spoons and count units belong to neither
+ * system, so they don't count.
  */
 export function detectUnitSystem(
   ingredients: Pick<Ingredient, 'unit'>[],
@@ -11,7 +11,6 @@ export function detectUnitSystem(
   let metric = 0;
   let us = 0;
   for (const { unit } of ingredients) {
-    if (unit === 'tsp' || unit === 'tbsp') continue;
     const system = getUnit(unit)?.system;
     if (system === 'metric') metric++;
     else if (system === 'us') us++;

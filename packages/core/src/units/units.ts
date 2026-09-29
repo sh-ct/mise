@@ -6,7 +6,7 @@ export interface UnitDef {
   dimension: Dimension;
   /** Factor to the dimension's base unit (g, ml, mm). Count units have no conversion. */
   toBase?: number;
-  /** Which system the unit belongs to; count units belong to neither. */
+  /** Which system the unit belongs to. Unset for spoons (used by both) and count units. */
   system?: MeasurementSystem;
   singular: string;
   plural: string;
@@ -17,7 +17,7 @@ export interface UnitDef {
   caseSensitiveAliases?: string[];
 }
 
-// US customary volumes. Metric tsp/tbsp (5/15 ml) differ by <2%, which doesn't matter in a kitchen.
+// US customary volumes. Spoons are shared by both systems: metric tsp/tbsp (5/15 ml) differ by <2%.
 const TSP_ML = 4.92892;
 
 const COUNT_UNITS: Array<
@@ -168,25 +168,22 @@ export const UNITS: readonly UnitDef[] = [
     code: 'tsp',
     dimension: 'volume',
     toBase: TSP_ML,
-    system: 'us',
     singular: 'teaspoon',
     plural: 'teaspoons',
     abbr: 'tsp',
-    aliases: ['tsp', 'tsps', 'tsp.', 'teaspoon', 'teaspoons', 'tspn'],
+    aliases: ['tsp', 'tsps', 'teaspoon', 'teaspoons', 'tspn'],
     caseSensitiveAliases: ['t'],
   },
   {
     code: 'tbsp',
     dimension: 'volume',
     toBase: TSP_ML * 3,
-    system: 'us',
     singular: 'tablespoon',
     plural: 'tablespoons',
     abbr: 'tbsp',
     aliases: [
       'tbsp',
       'tbsps',
-      'tbsp.',
       'tbs',
       'tbl',
       'tbls',
@@ -204,15 +201,7 @@ export const UNITS: readonly UnitDef[] = [
     singular: 'fluid ounce',
     plural: 'fluid ounces',
     abbr: 'fl oz',
-    aliases: [
-      'fl oz',
-      'fl. oz',
-      'fl. oz.',
-      'fl oz.',
-      'floz',
-      'fluid ounce',
-      'fluid ounces',
-    ],
+    aliases: ['fl oz', 'fl. oz', 'floz', 'fluid ounce', 'fluid ounces'],
   },
   {
     code: 'cup',
