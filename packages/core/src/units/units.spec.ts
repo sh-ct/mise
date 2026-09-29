@@ -88,22 +88,36 @@ describe('toSystem', () => {
     expect(toSystem(2, 'cup', 'us')).toEqual({ value: 2, unit: 'cup' });
   });
 
-  it('converts volume to mass when preferred and a density is known', () => {
-    const r = toSystem(1, 'cup', 'metric', {
-      item: 'plain flour',
-      preferDimension: 'mass',
+  it('weighs solids and keeps liquids in volume for metric', () => {
+    const flour = toSystem(1, 'cup', 'metric', { item: 'plain flour' });
+    expect(flour?.unit).toBe('g');
+    expect(flour?.value).toBeCloseTo(125, 0);
+    expect(toSystem(1, 'cup', 'metric', { item: 'whole milk' })?.unit).toBe(
+      'ml',
+    );
+  });
+
+  it('measures by volume for US when a density is known', () => {
+    expect(toSystem(125, 'g', 'us', { item: 'flour' })).toMatchObject({
+      unit: 'cup',
     });
-    expect(r?.unit).toBe('g');
-    expect(r?.value).toBeCloseTo(125, 0);
+    expect(toSystem(125, 'g', 'us', { item: 'chopped parsley' })?.unit).toBe(
+      'oz',
+    );
   });
 
   it('falls back to the same dimension without a density', () => {
     expect(
-      toSystem(1, 'cup', 'metric', {
-        item: 'chopped parsley',
-        preferDimension: 'mass',
-      })?.unit,
+      toSystem(1, 'cup', 'metric', { item: 'chopped parsley' })?.unit,
     ).toBe('ml');
+  });
+
+  it('keeps spoons in both systems', () => {
+    expect(toSystem(1, 'tsp', 'metric', { item: 'salt' })).toEqual({
+      value: 1,
+      unit: 'tsp',
+    });
+    expect(toSystem(2, 'tbsp', 'us')).toEqual({ value: 2, unit: 'tbsp' });
   });
 
   it('ignores count units', () => {
@@ -113,9 +127,15 @@ describe('toSystem', () => {
 
 describe('densityFor', () => {
   it('prefers the most specific match', () => {
-    expect(densityFor('Brown sugar, packed')).toBe(0.93);
-    expect(densityFor('sugar')).toBe(0.85);
-    expect(densityFor('extra virgin olive oil')).toBe(0.91);
+    expect(densityFor('Brown sugar, packed')).toEqual({
+      gPerMl: 0.93,
+      liquid: false,
+    });
+    expect(densityFor('sugar')?.gPerMl).toBe(0.85);
+    expect(densityFor('extra virgin olive oil')).toEqual({
+      gPerMl: 0.91,
+      liquid: true,
+    });
   });
 
   it('matches whole words only', () => {

@@ -1,17 +1,16 @@
 import { formatDuration, type DurationMatch } from '../steps/durations';
 
-/**
- * Cook-mode timers. Times are absolute epoch milliseconds (`endsAt`), never "remaining" counters, so a
- * timer stays correct when the tab is suspended, the screen locks or the app reloads (ADR 0005).
- * All functions are pure: pass `now` in.
- */
+// Cook-mode timers (docs/ARCHITECTURE.md#cook-mode). Times are absolute epoch milliseconds (`endsAt`),
+// never "remaining" counters, so a timer stays correct when the tab is suspended, the screen locks or
+// the app reloads. All functions are pure: pass `now` in.
+
 export interface CookTimer {
   id: string;
   label: string;
   stepId?: string;
   startedAt: number;
   endsAt: number;
-  /** Seconds the recipe says it might take beyond the lower bound (ranges like "10–12 min"). */
+  /** Time the recipe allows beyond the current end, in seconds ("10–12 min" → 120 at first). */
   rangeExtraSeconds: number;
   /** Set once the timer has been acknowledged after firing. */
   dismissedAt?: number;
@@ -53,7 +52,8 @@ export function timerState(timer: CookTimer, now: number): TimerState {
 
 /**
  * Add time. Works while running (pushes the end back) and after expiry (restarts from now), so
- * "+2 min" still does what you expect when the cake isn't done yet.
+ * "+2 min" still does what you expect when the cake isn't done yet. Added time uses up the recipe's
+ * range, so the next expiry only prompts a check if some range is left.
  */
 export function extendTimer(
   timer: CookTimer,
@@ -62,7 +62,11 @@ export function extendTimer(
 ): CookTimer {
   const { dismissedAt: _dismissed, ...rest } = timer;
   const base = now >= timer.endsAt ? now : timer.endsAt;
-  return { ...rest, endsAt: base + seconds * 1000 };
+  return {
+    ...rest,
+    endsAt: base + seconds * 1000,
+    rangeExtraSeconds: Math.max(0, timer.rangeExtraSeconds - seconds),
+  };
 }
 
 export function dismissTimer(timer: CookTimer, now: number): CookTimer {
@@ -84,4 +88,15 @@ export function extendOptions(timer: CookTimer): number[] {
     return [...base, timer.rangeExtraSeconds].sort((a, b) => a - b);
   }
   return base;
+}
+
+/** "1:05:00", "4:59", "0:07" — countdown clock. Negative values (overrun) get a leading "+". */
+export function formatClock(seconds: number): string {
+  const over = seconds < 0;
+  const s = Math.abs(Math.round(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, '0');
+  const body = h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+  return over ? `+${body}` : body;
 }

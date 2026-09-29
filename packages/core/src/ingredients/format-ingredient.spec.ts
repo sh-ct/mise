@@ -69,6 +69,30 @@ describe('formatIngredient', () => {
     expect(r.quantity).toBe('475');
   });
 
+  it('keeps spoons and weighs dry goods when converting to metric', () => {
+    expect(
+      formatIngredient(ing({ qtyMin: 1, unit: 'tsp', item: 'salt' }), {
+        system: 'metric',
+      }).text,
+    ).toBe('1 tsp salt');
+    expect(
+      formatIngredient(ing({ qtyMin: 2, unit: 'cup', item: 'plain flour' }), {
+        system: 'metric',
+      }).text,
+    ).toBe('250g plain flour');
+  });
+
+  it('chooses singular or plural from the displayed quantity', () => {
+    const milk = ing({ qtyMin: 1, unit: 'cup', item: 'milk' });
+    expect(
+      formatIngredient(milk, { factor: 1.04, unitStyle: 'long' }).text,
+    ).toBe('1 cup milk');
+    const garlic = ing({ qtyMin: 3, unit: 'clove', item: 'garlic' });
+    expect(formatIngredient(garlic, { factor: 0.35 }).text).toBe(
+      '1 clove garlic',
+    );
+  });
+
   it('leaves count units alone when converting', () => {
     expect(
       formatIngredient(ing({ qtyMin: 2, unit: 'clove', item: 'garlic' }), {

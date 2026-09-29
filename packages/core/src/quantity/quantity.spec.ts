@@ -1,4 +1,5 @@
 import {
+  displayedValue,
   formatQuantity,
   formatRange,
   parseLeadingQuantity,
@@ -17,6 +18,7 @@ describe('parseNumber', () => {
     ['1½', 1.5],
     ['1 ½', 1.5],
     ['2⅔', 2 + 2 / 3],
+    ['1-1/2', 1.5],
   ])('%s → %d', (input, expected) => {
     expect(parseNumber(input)).toBeCloseTo(expected);
   });
@@ -75,6 +77,21 @@ describe('parseLeadingQuantity', () => {
   });
 });
 
+describe('parseLeadingQuantity (US mixed numbers)', () => {
+  it('reads "1-1/2" as one and a half, not a range', () => {
+    expect(parseLeadingQuantity('1-1/2 cups')).toEqual({ min: 1.5, length: 6 });
+    expect(parseLeadingQuantity('1-2 cups')).toMatchObject({ min: 1, max: 2 });
+  });
+});
+
+describe('displayedValue', () => {
+  it('returns the value as it will be shown', () => {
+    expect(displayedValue(1.04)).toBe(1);
+    expect(displayedValue(0.35)).toBeCloseTo(1 / 3);
+    expect(displayedValue(247, 'decimal')).toBe(245);
+  });
+});
+
 describe('formatQuantity', () => {
   it.each([
     [0.5, '½'],
@@ -86,6 +103,7 @@ describe('formatQuantity', () => {
     [0.125, '⅛'],
     [1.6667, '1⅔'],
     [0.02, '0.02'],
+    [0.004, '0.004'],
   ])('fraction %d → %s', (value, expected) => {
     expect(formatQuantity(value)).toBe(expected);
   });

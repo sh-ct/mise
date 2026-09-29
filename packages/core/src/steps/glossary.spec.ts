@@ -66,6 +66,12 @@ describe('GlossaryMatcher', () => {
       ['reduce', 'reduced'],
     ]);
     expect(slugs('Chopped herbs.')).toEqual([['chop', 'Chopped']]);
+    const fry = new GlossaryMatcher([
+      { slug: 'fry', term: 'fry', definition: 'Cook in hot fat.' },
+    ]);
+    expect(fry.match('Fried until crisp.').map((m) => m.text)).toEqual([
+      'Fried',
+    ]);
   });
 
   it('applies exclusion rules for ambiguous words', () => {
@@ -134,6 +140,27 @@ describe('enrichStep', () => {
         glossarySuppress: ['fold'],
       }),
     ).toEqual([{ kind: 'text', text: 'Fold gently.' }]);
+  });
+
+  it('uses the next mention when the first is inside a timer', () => {
+    const m = new GlossaryMatcher([
+      { slug: 'minutes', term: 'minutes', definition: 'Test term.' },
+    ]);
+    const segments = enrichStep(
+      'Cook for 5 minutes, checking every few minutes.',
+      { glossary: m },
+    );
+    expect(
+      segments.filter((x) => x.kind !== 'text').map((x) => [x.kind, x.text]),
+    ).toEqual([
+      ['timer', '5 minutes'],
+      ['glossary', 'minutes'],
+    ]);
+    expect(segments.at(-2)).toEqual({
+      kind: 'glossary',
+      text: 'minutes',
+      slug: 'minutes',
+    });
   });
 
   it('round-trips the original text', () => {

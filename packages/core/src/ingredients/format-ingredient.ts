@@ -1,4 +1,4 @@
-import { formatRange } from '../quantity/quantity';
+import { displayedValue, formatRange } from '../quantity/quantity';
 import { scaleIngredient } from '../scaling/scale';
 import type { Ingredient } from '../schema/recipe';
 import { toSystem } from '../units/convert';
@@ -23,7 +23,7 @@ export interface IngredientDisplay {
   prepNote?: string;
   note?: string;
   optional: boolean;
-  /** Everything joined: "1½ cups plain flour, sifted". */
+  /** Quantity, unit, item and prep note: "1½ cups plain flour, sifted". */
   text: string;
 }
 
@@ -59,16 +59,17 @@ export function formatIngredient(
   const style = def?.system === 'metric' ? 'decimal' : 'fraction';
   const quantity =
     qtyMin === undefined ? '' : formatRange(qtyMin, qtyMax, style);
+  const shown =
+    qtyMin === undefined ? undefined : displayedValue(qtyMax ?? qtyMin, style);
   const unitText = unit
-    ? unitLabel(unit, qtyMax ?? qtyMin, options.unitStyle ?? 'abbr')
+    ? unitLabel(unit, shown, options.unitStyle ?? 'abbr')
     : '';
 
   // Metric abbreviations sit tight against the number ("250g"); everything else gets a space.
+  const tight = def?.system === 'metric' && unitText === def.abbr;
   const qtyUnit =
     quantity && unitText
-      ? def?.system === 'metric' && unitText === def.abbr
-        ? `${quantity}${unitText}`
-        : `${quantity} ${unitText}`
+      ? `${quantity}${tight ? '' : ' '}${unitText}`
       : quantity || unitText;
   const text =
     [qtyUnit, ingredient.item].filter(Boolean).join(' ') +
