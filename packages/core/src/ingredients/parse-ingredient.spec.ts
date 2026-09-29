@@ -84,6 +84,20 @@ describe('parseIngredientLine', () => {
       { qtyMin: 2, unit: 'cm', item: 'piece ginger', prepNote: 'grated' },
     ],
     ['1 cup of sugar', { qtyMin: 1, unit: 'cup', item: 'sugar' }],
+    [
+      '1 small bunch parsley, chopped',
+      {
+        qtyMin: 1,
+        unit: 'bunch',
+        item: 'parsley',
+        prepNote: 'chopped',
+        note: 'small',
+      },
+    ],
+    [
+      '1 heaped tbsp flour',
+      { qtyMin: 1, unit: 'tbsp', item: 'flour', note: 'heaped' },
+    ],
     ['Two tablespoons honey', { qtyMin: 2, unit: 'tbsp', item: 'honey' }],
     [
       'flour (plain), for dusting',

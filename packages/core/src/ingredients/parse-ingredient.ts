@@ -16,6 +16,8 @@ export interface ParsedIngredient {
 
 const BULLET = /^\s*(?:[-*•·▢□☐◦‣–—]|\d+[.)](?=\s))\s*/u;
 const OPTIONAL = /\s*(?:\(\s*optional\s*\)|,?\s*\boptional\b\s*[:,]?)\s*/i;
+const SIZE_BEFORE_UNIT =
+  /^(small|medium|large|big|heaped|heaping|level|rounded|generous|scant|good)\s+/i;
 const TO_TASTE =
   /,?\s*\b(to taste|as needed|as required|for (?:serving|garnish|dusting|greasing|frying|brushing)[^,]*)\s*$/i;
 
@@ -62,6 +64,15 @@ export function parseIngredientLine(line: string): ParsedIngredient {
     if (paren) {
       notes.push((paren[1] ?? '').trim());
       rest = rest.slice(paren[0].length);
+    }
+  }
+
+  // "1 small bunch parsley", "1 heaped tbsp flour" — a size word before a unit is a note.
+  if (qty) {
+    const size = SIZE_BEFORE_UNIT.exec(rest);
+    if (size && matchUnitPrefix(rest.slice(size[0].length))) {
+      notes.push((size[1] ?? '').toLowerCase());
+      rest = rest.slice(size[0].length);
     }
   }
 
