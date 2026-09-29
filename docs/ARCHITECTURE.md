@@ -78,7 +78,7 @@ recipe_section        id, recipe_id, kind (ingredients | steps), title, position
 ingredient            id, recipe_id, section_id?, position,
                       qty_min numeric?, qty_max numeric?,   -- ranges: "2–3 cloves"
                       unit text?,                            -- canonical code from core/units
-                      item text, prep_note text?,            -- "onion", "finely diced"
+                      item text, prep_note text?, note text?, -- "onion", "finely diced", "14 oz can"
                       optional bool, raw_text text,          -- original line, never lost
                       canonical_ingredient_id?               -- later: shopping list merge
 step                  id, recipe_id, section_id?, position, text (plain prose), image_path?,
