@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- Fixture modelled on a typical WordPress recipe-plugin page: @graph, HowToSections, entities. Content written for tests. -->
+<html lang="en">
+  <head>
+    <title>Weeknight Chicken Traybake | Test Kitchen</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://example.test/#website",
+            "name": "Test Kitchen"
+          },
+          {
+            "@type": ["Article", "BlogPosting"],
+            "headline": "Weeknight Chicken Traybake",
+            "author": { "name": "Sam Cook" }
+          },
+          {
+            "@type": "Recipe",
+            "name": "Weeknight Chicken Traybake",
+            "author": { "@type": "Person", "name": "Sam Cook" },
+            "description": "A one-tray dinner with crispy chicken, lemon &amp; herbs. <strong>Ready in under an hour.</strong>",
+            "image": [
+              "https://example.test/img/traybake-1200x1200.jpg",
+              "https://example.test/img/traybake-1200x900.jpg"
+            ],
+            "recipeYield": ["4", "4 servings"],
+            "prepTime": "PT15M",
+            "cookTime": "PT40M",
+            "totalTime": "PT55M",
+            "recipeCategory": ["Dinner", "Main Course"],
+            "recipeCuisine": ["British"],
+            "keywords": "traybake, chicken, easy dinner",
+            "recipeIngredient": [
+              "8 chicken thighs, skin on",
+              "500 g baby potatoes, halved",
+              "2 red onions, cut into wedges",
+              "1 lemon, quartered",
+              "3 tbsp olive oil",
+              "&frac12; tsp smoked paprika",
+              "For the dressing:",
+              "2 tbsp Greek yoghurt",
+              "1 small bunch parsley, chopped",
+              "Salt &amp; pepper, to taste"
+            ],
+            "recipeInstructions": [
+              {
+                "@type": "HowToSection",
+                "name": "Traybake",
+                "itemListElement": [
+                  {
+                    "@type": "HowToStep",
+                    "text": "Heat the oven to 200C/180C fan. Toss the potatoes and onions with 2 tbsp of the oil."
+                  },
+                  {
+                    "@type": "HowToStep",
+                    "text": "Rub the chicken with the paprika and remaining oil, season, and nestle among the vegetables with the lemon."
+                  },
+                  {
+                    "@type": "HowToStep",
+                    "text": "Roast for 35&#8211;40 minutes until the chicken is golden and cooked through."
+                  }
+                ]
+              },
+              {
+                "@type": "HowToSection",
+                "name": "Dressing",
+                "itemListElement": [
+                  {
+                    "@type": "HowToStep",
+                    "text": "Mix the yoghurt with the parsley and a squeeze of the roasted lemon. Season to taste."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Weeknight Chicken Traybake</h1>
+  </body>
+</html>

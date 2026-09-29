@@ -37,12 +37,15 @@ mise/
 │        └─ shared/        ui components, pipes (quantity, fraction)
 ├─ packages/
 │  ├─ core/                domain logic — no Angular, no Supabase, no DOM
-│  │  ├─ schema/           Zod: Recipe, RecipeDraft, Ingredient, Step…
-│  │  ├─ ingredients/      ingredient-line parser, formatting, fractions
+│  │  ├─ schema/           Zod RecipeDraft + LIMITS shared with the DB
+│  │  ├─ quantity/         number parsing ("1½", "1-1/2", ranges), kitchen-fraction formatting
 │  │  ├─ units/            unit registry, conversion, density table
+│  │  ├─ ingredients/      ingredient-line parser, display formatting, unit-system detection
 │  │  ├─ scaling/
-│  │  ├─ steps/            step markup parser (timers, glossary), ingredient auto-linking
-│  │  └─ import/           JSON-LD mapper, free-text splitter
+│  │  ├─ steps/            timer + glossary detection, enrichment segments, ingredient auto-linking
+│  │  ├─ cook/             timer model, step ingredient preview
+│  │  ├─ import/           JSON-LD mapper, plain-text splitter, HTML fallback, RecipeParser
+│  │  └─ text/             shared text helpers (bullets, list numbers, plurals, spans)
 │  └─ db-types/            generated Supabase types
 ├─ supabase/
 │  ├─ migrations/          plain SQL, source of truth for schema
@@ -176,7 +179,18 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 - RLS on every table; pgTAP tests assert user A cannot read or write user B's rows.
 - Storage buckets use owner-prefixed paths (`{owner_id}/…`) with matching storage policies.
-- The edge function fetching URLs validates scheme, blocks private IP ranges (SSRF), caps response size and timeout.
+- Recipe text from imports is untrusted: render it with text bindings or `StepSegment`s, never `[innerHTML]`.
+- The URL-import edge function (not built yet) must:
+  - require a user JWT and rate-limit per user, so it can't be used as an open proxy;
+  - allow http(s) on ports 80/443 only, no credentials in the URL; resolve DNS and block loopback, private,
+    link-local, metadata, IPv6 ULA and IPv4-mapped addresses; follow redirects manually, re-checking each hop;
+  - stream the response with a byte cap (~2 MB), a timeout, and a text/html content-type check;
+  - pass the final post-redirect URL as `sourceUrl` (not the page's own claim), wrap parsing in a time budget,
+    and return only the validated draft;
+  - treat `heroImageUrl` as attacker-chosen: the client uploads it through the same guarded fetch, never
+    hotlinks it (which would leak the user's IP to the page owner).
+- `packages/core` importers are linear-time on hostile input and clip everything to `LIMITS`, so the
+  function's own caps are defence in depth.
 - No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in
   GitHub Actions / Cloudflare / Supabase settings.
 

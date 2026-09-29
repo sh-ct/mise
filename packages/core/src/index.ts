@@ -88,3 +88,14 @@ export {
   stepIngredientLines,
   type StepIngredientLine,
 } from './cook/step-ingredients';
+export {
+  importRecipeFromHtml,
+  type JsonLdImportOptions,
+} from './import/jsonld';
+export { parseRecipeText, type TextImportOptions } from './import/text';
+export {
+  htmlParser,
+  plainTextParser,
+  type RecipeParser,
+  type RecipeInput,
+} from './import/parser';
