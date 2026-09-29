@@ -49,3 +49,42 @@ export {
 } from './ingredients/format-ingredient';
 export { detectUnitSystem } from './ingredients/unit-system';
 export { scaleFactor, scaleIngredient } from './scaling/scale';
+export { type TextSpan } from './text/normalize';
+export {
+  detectDurations,
+  formatDuration,
+  type DurationMatch,
+} from './steps/durations';
+export {
+  GlossaryMatcher,
+  type GlossaryTerm,
+  type GlossaryMatchRules,
+  type GlossaryMatch,
+} from './steps/glossary';
+export {
+  enrichStep,
+  type StepSegment,
+  type EnrichOptions,
+} from './steps/enrich';
+export {
+  IngredientLinker,
+  linkStepIngredients,
+  autoLinkDraft,
+} from './steps/link-ingredients';
+export {
+  startTimer,
+  remainingMs,
+  timerState,
+  extendTimer,
+  dismissTimer,
+  expiryMessage,
+  extendOptions,
+  formatClock,
+  type CookTimer,
+  type TimerState,
+  type StartTimerOptions,
+} from './cook/timers';
+export {
+  stepIngredientLines,
+  type StepIngredientLine,
+} from './cook/step-ingredients';
