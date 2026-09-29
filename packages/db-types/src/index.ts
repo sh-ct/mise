@@ -1,8 +1,9 @@
-export type {
-  Database,
-  Json,
-  Tables,
-  TablesInsert,
-  TablesUpdate,
-  Enums,
+export {
+  Constants,
+  type Database,
+  type Json,
+  type Tables,
+  type TablesInsert,
+  type TablesUpdate,
+  type Enums,
 } from './database.types';

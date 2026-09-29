@@ -1,15 +1,15 @@
 -- Runs first (files run alphabetically) and commits helper functions for the other test files.
+-- Local test database only: never run `supabase test db --linked`.
 begin;
 create extension if not exists pgtap with schema extensions;
-
 
 create schema if not exists tests;
 grant usage on schema tests to anon, authenticated;
 
+-- Called as postgres only; deliberately not granted to anon/authenticated.
 create or replace function tests.create_user(p_id uuid, p_email text)
 returns void
 language sql
-security definer
 set search_path = ''
 as $$
   insert into auth.users (id, email, aud, role, instance_id)
@@ -46,7 +46,16 @@ begin
 end;
 $$;
 
--- A small valid RecipeDraft (packages/core shape) with fixed ids so tests can refer to them.
+-- Deterministic child id, unique per recipe, so several sample drafts can coexist in one test.
+create or replace function tests.id(p_recipe_id uuid, p_label text)
+returns uuid
+language sql
+immutable
+as $$
+  select md5(p_recipe_id::text || p_label)::uuid;
+$$;
+
+-- A small valid RecipeDraft (packages/core shape). Refer to children with tests.id(recipe_id, label).
 create or replace function tests.sample_draft(p_recipe_id uuid)
 returns jsonb
 language sql
@@ -57,33 +66,52 @@ as $$
     'title', 'Onion Soup',
     'description', 'Slow and sweet.',
     'servings', 4,
+    'yieldText', '4 bowls',
+    'prepMinutes', 15,
+    'cookMinutes', 60,
     'sourceType', 'manual',
+    'sourceUrl', 'https://example.test/soup',
     'unitSystem', 'metric',
     'tags', jsonb_build_array('Soup', 'soup ', 'Winter'),
-    'ingredientSections', jsonb_build_array(jsonb_build_object(
-      'id', '10000000-0000-4000-8000-000000000001',
-      'ingredients', jsonb_build_array(
-        jsonb_build_object('id', '20000000-0000-4000-8000-000000000001', 'qtyMin', 1, 'unit', 'kg', 'item', 'onions', 'prepNote', 'sliced', 'optional', false, 'rawText', '1kg onions, sliced'),
-        jsonb_build_object('id', '20000000-0000-4000-8000-000000000002', 'qtyMin', 50, 'unit', 'g', 'item', 'butter', 'optional', false, 'rawText', '50g butter'),
-        jsonb_build_object('id', '20000000-0000-4000-8000-000000000003', 'qtyMin', 1, 'unit', 'l', 'item', 'beef stock', 'optional', false, 'rawText', '1l beef stock')
+    'ingredientSections', jsonb_build_array(
+      jsonb_build_object(
+        'id', tests.id(p_recipe_id, 'is1'),
+        'ingredients', jsonb_build_array(
+          jsonb_build_object('id', tests.id(p_recipe_id, 'onions'), 'qtyMin', 1, 'unit', 'kg', 'item', 'onions',
+            'prepNote', 'sliced', 'optional', false, 'rawText', '1kg onions, sliced'),
+          jsonb_build_object('id', tests.id(p_recipe_id, 'butter'), 'qtyMin', 50, 'unit', 'g', 'item', 'butter',
+            'optional', false, 'rawText', '50g butter')
+        )
+      ),
+      jsonb_build_object(
+        'id', tests.id(p_recipe_id, 'is2'),
+        'title', 'To serve',
+        'ingredients', jsonb_build_array(
+          jsonb_build_object('id', tests.id(p_recipe_id, 'stock'), 'qtyMin', 1, 'qtyMax', 1.5, 'unit', 'l',
+            'item', 'beef stock', 'note', 'or vegetable', 'optional', true, 'rawText', '1-1.5l beef stock (or vegetable)')
+        )
       )
-    )),
+    ),
     'stepSections', jsonb_build_array(jsonb_build_object(
-      'id', '10000000-0000-4000-8000-000000000002',
+      'id', tests.id(p_recipe_id, 'ss1'),
       'steps', jsonb_build_array(
-        jsonb_build_object('id', '30000000-0000-4000-8000-000000000001', 'text', 'Melt the butter and cook the onions for 40 minutes.', 'glossarySuppress', '[]'::jsonb,
+        jsonb_build_object('id', tests.id(p_recipe_id, 'step1'), 'text', 'Melt the butter and cook the onions for 40 minutes.',
+          'glossarySuppress', '[]'::jsonb,
           'ingredientRefs', jsonb_build_array(
-            jsonb_build_object('ingredientId', '20000000-0000-4000-8000-000000000002', 'amountFraction', 1),
-            jsonb_build_object('ingredientId', '20000000-0000-4000-8000-000000000001', 'amountFraction', 1))),
-        jsonb_build_object('id', '30000000-0000-4000-8000-000000000002', 'text', 'Add the stock and simmer.', 'glossarySuppress', '["simmer"]'::jsonb,
+            jsonb_build_object('ingredientId', tests.id(p_recipe_id, 'butter'), 'amountFraction', 1),
+            jsonb_build_object('ingredientId', tests.id(p_recipe_id, 'onions'), 'amountFraction', 1))),
+        jsonb_build_object('id', tests.id(p_recipe_id, 'step2'), 'text', 'Add the stock and simmer.',
+          'imagePath', null, 'glossarySuppress', '["simmer"]'::jsonb,
           'ingredientRefs', jsonb_build_array(
-            jsonb_build_object('ingredientId', '20000000-0000-4000-8000-000000000003', 'amountFraction', 0.5)))
+            jsonb_build_object('ingredientId', tests.id(p_recipe_id, 'stock'), 'amountFraction', 0.5)))
       )
     ))
   );
 $$;
 
-grant execute on all functions in schema tests to anon, authenticated;
+grant execute on function
+  tests.authenticate_as(uuid), tests.as_anon(), tests.clear_authentication(), tests.id(uuid, text), tests.sample_draft(uuid)
+to anon, authenticated;
 
 select plan(1);
 select ok(true, 'test helpers installed');

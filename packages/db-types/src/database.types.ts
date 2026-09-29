@@ -236,60 +236,60 @@ export type Database = {
       };
       recipe: {
         Row: {
-          cook_min: number | null;
+          cook_minutes: number | null;
           created_at: string;
           description: string | null;
           hero_image_path: string | null;
           id: string;
           owner_id: string;
-          prep_min: number | null;
+          prep_minutes: number | null;
           search: unknown;
           servings: number | null;
           source_attribution: string | null;
           source_type: Database['public']['Enums']['source_type'];
           source_url: string | null;
           title: string;
-          total_min: number | null;
+          total_minutes: number | null;
           unit_system: Database['public']['Enums']['unit_system'];
           updated_at: string;
           visibility: Database['public']['Enums']['visibility'];
           yield_text: string | null;
         };
         Insert: {
-          cook_min?: number | null;
+          cook_minutes?: number | null;
           created_at?: string;
           description?: string | null;
           hero_image_path?: string | null;
-          id?: string;
+          id: string;
           owner_id?: string;
-          prep_min?: number | null;
+          prep_minutes?: number | null;
           search?: unknown;
           servings?: number | null;
           source_attribution?: string | null;
           source_type?: Database['public']['Enums']['source_type'];
           source_url?: string | null;
           title: string;
-          total_min?: number | null;
+          total_minutes?: number | null;
           unit_system?: Database['public']['Enums']['unit_system'];
           updated_at?: string;
           visibility?: Database['public']['Enums']['visibility'];
           yield_text?: string | null;
         };
         Update: {
-          cook_min?: number | null;
+          cook_minutes?: number | null;
           created_at?: string;
           description?: string | null;
           hero_image_path?: string | null;
           id?: string;
           owner_id?: string;
-          prep_min?: number | null;
+          prep_minutes?: number | null;
           search?: unknown;
           servings?: number | null;
           source_attribution?: string | null;
           source_type?: Database['public']['Enums']['source_type'];
           source_url?: string | null;
           title?: string;
-          total_min?: number | null;
+          total_minutes?: number | null;
           unit_system?: Database['public']['Enums']['unit_system'];
           updated_at?: string;
           visibility?: Database['public']['Enums']['visibility'];
@@ -564,10 +564,6 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      recipe_search_vector: {
-        Args: { p_description: string; p_recipe_id: string; p_title: string };
-        Returns: unknown;
-      };
       save_recipe: { Args: { draft: Json }; Returns: string };
     };
     Enums: {

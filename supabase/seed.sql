@@ -1,6 +1,25 @@
--- Local development seed. Glossary terms are global content; production gets them via a migration
--- once the curated list is agreed (docs/PLAN.md open question: glossary source).
+-- Local development seed only (never run against the hosted project).
 
+-- Sign-up is disabled (config.toml), so seed a user to sign in as: request a code for this address
+-- and read it in Mailpit (http://127.0.0.1:54324).
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+) values (
+  '00000000-0000-0000-0000-000000000000', 'd0000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated',
+  'dev@mise.test', '', now(), '{"provider": "email", "providers": ["email"]}', '{}', now(), now(), '', '', '', ''
+);
+
+insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at)
+values (
+  gen_random_uuid(), 'd0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001',
+  '{"sub": "d0000000-0000-4000-8000-000000000001", "email": "dev@mise.test", "email_verified": true}',
+  'email', now(), now()
+);
+
+-- Glossary terms are global content; production gets them via a migration once the curated list is
+-- agreed (docs/PLAN.md open question: glossary source).
 insert into public.glossary_term (slug, term, aliases, definition, match_rules, plain_phrasing) values
   ('sous-vide', 'sous vide', '{}',
    'Cooking food sealed in a bag in a water bath held at a precise, low temperature.',
@@ -32,8 +51,4 @@ insert into public.glossary_term (slug, term, aliases, definition, match_rules, 
   ('cream', 'cream', '{}',
    'Beating butter and sugar together until pale and fluffy.',
    '{"requireNear": ["butter", "sugar", "margarine"]}',
-   'beat until pale and fluffy'),
-  ('rest', 'rest', '{"resting"}',
-   'Leaving cooked meat or dough undisturbed so juices redistribute or gluten relaxes.',
-   '{"requireNear": ["meat", "steak", "dough", "joint", "loaf", "lamb", "beef", "pork", "chicken", "turkey", "batter"]}',
-   'leave it alone for a while');
+   'beat until pale and fluffy');

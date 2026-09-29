@@ -11,7 +11,8 @@
       "options": {
         "command": "tsc -p tsconfig.json",
         "cwd": "packages/db-types"
-      }
+      },
+      "inputs": ["default"]
     }
   }
 }

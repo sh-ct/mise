@@ -55,9 +55,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm exec supabase db start
+      # Storage and auth are needed by the migrations; skip the rest.
+      - run: pnpm exec supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - name: pgTAP tests (RLS, save_recipe)
-        run: pnpm exec supabase test db
+        run: pnpm db:test
       - name: Generated DB types are up to date
         run: |
           pnpm db:types
