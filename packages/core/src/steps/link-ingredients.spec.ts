@@ -1,5 +1,9 @@
 import type { RecipeDraft } from '../schema/recipe';
-import { autoLinkDraft, linkStepIngredients } from './link-ingredients';
+import {
+  IngredientLinker,
+  autoLinkDraft,
+  linkStepIngredients,
+} from './link-ingredients';
 
 const ings = (...items: string[]) =>
   items.map((item, i) => ({ id: `i${i}`, item }));
@@ -42,6 +46,31 @@ describe('linkStepIngredients', () => {
     ).toEqual(['i0', 'i1']);
   });
 
+  it('does not treat a generic word at the start of a sentence as the ingredient', () => {
+    const list = ings('double cream', 'unsalted butter');
+    expect(linkStepIngredients('Cream the butter until pale.', list)).toEqual([
+      'i1',
+    ]);
+    expect(linkStepIngredients('Pour in the cream.', list)).toEqual(['i0']);
+    expect(
+      linkStepIngredients('Whip the cream. Cream the butter.', list),
+    ).toEqual(['i0', 'i1']);
+  });
+
+  it('stays fast on large recipes', () => {
+    const many = ings(
+      ...Array.from({ length: 300 }, (_, i) => `ingredient${i} powder`),
+    );
+    const linker = new IngredientLinker(many);
+    const step = Array.from(
+      { length: 200 },
+      (_, i) => `add ingredient${i}`,
+    ).join(', ');
+    const started = performance.now();
+    for (let i = 0; i < 200; i++) linker.link(step);
+    expect(performance.now() - started).toBeLessThan(2000);
+  });
+
   it('prefers an exact full-name match over head-noun matches', () => {
     expect(
       linkStepIngredients('Stir in the sugar.', ings('sugar', 'brown sugar')),
@@ -53,6 +82,7 @@ describe('autoLinkDraft', () => {
   const ID = (n: number) =>
     `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
   const draft: RecipeDraft = {
+    id: ID(9),
     title: 'Test',
     sourceType: 'text',
     unitSystem: 'mixed',

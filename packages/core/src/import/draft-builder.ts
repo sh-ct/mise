@@ -1,7 +1,12 @@
 import { newId, type IdFactory } from '../ids';
 import { toIngredient } from '../ingredients/parse-ingredient';
 import { detectUnitSystem } from '../ingredients/unit-system';
-import type { RecipeDraft, SourceType } from '../schema/recipe';
+import {
+  LIMITS,
+  allIngredients,
+  type RecipeDraft,
+  type SourceType,
+} from '../schema/recipe';
 import { autoLinkDraft } from '../steps/link-ingredients';
 
 export interface RawSection {
@@ -27,92 +32,136 @@ export interface RawRecipe {
   stepSections: RawSection[];
 }
 
-const isUrl = (s: string | undefined): s is string =>
-  !!s && /^https?:\/\/\S+$/i.test(s);
+/** Trim and cap to `max` characters, marking the cut. */
+function clip(text: string | undefined, max: number): string | undefined {
+  const t = text?.trim();
+  if (!t) return undefined;
+  return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
+}
+
+function inRange(n: number | undefined, max: number): number | undefined {
+  return n !== undefined && Number.isFinite(n) && n > 0 && n <= max
+    ? n
+    : undefined;
+}
+
+const minutes = (n: number | undefined) => {
+  const m = inRange(n, LIMITS.minutes);
+  return m === undefined ? undefined : Math.round(m);
+};
+
+const webUrl = (s: string | undefined) =>
+  s && s.length <= LIMITS.url && /^https?:\/\/\S+$/i.test(s) ? s : undefined;
 
 /**
- * Turn raw extracted pieces into a `RecipeDraft`: parse ingredient lines, drop empties, detect the
- * unit system and auto-link steps to ingredients. The result is for review in the editor, so it errs
- * on the side of keeping text rather than discarding it.
+ * Normalise sections: clip titles and lines, drop empty ones, and stop once `maxItems` lines have been
+ * taken across all sections (imports are untrusted and may be huge).
+ */
+function sections(
+  raw: RawSection[],
+  maxItems: number,
+  maxLine: number,
+): Array<{ title?: string; lines: string[] }> {
+  let budget = maxItems;
+  return raw
+    .slice(0, LIMITS.sections)
+    .map((s) => {
+      const lines = s.lines
+        .map((l) => clip(l, maxLine))
+        .filter((l): l is string => !!l)
+        .slice(0, Math.max(0, budget));
+      budget -= lines.length;
+      const title = clip(s.title, LIMITS.sectionTitle);
+      return { ...(title && { title }), lines };
+    })
+    .filter((s) => s.lines.length > 0);
+}
+
+/**
+ * Turn raw extracted pieces into a `RecipeDraft`: parse ingredient lines, detect the unit system and
+ * auto-link steps to ingredients. The result is for review in the editor, so it keeps text rather than
+ * discarding it, but everything is clipped to `LIMITS` so it validates and can be saved.
  */
 export function buildDraft(
   raw: RawRecipe,
   idFactory: IdFactory = newId,
 ): RecipeDraft {
-  const clean = (lines: string[]) => lines.map((l) => l.trim()).filter(Boolean);
-
-  let ingredientSections = raw.ingredientSections
-    .map((s) => ({
-      title: s.title?.trim() || undefined,
-      lines: clean(s.lines),
-    }))
-    .filter((s) => s.lines.length > 0)
-    .map((s) => ({
+  const ingredientSections = sections(
+    raw.ingredientSections,
+    LIMITS.ingredients,
+    LIMITS.rawText,
+  ).map((s) => ({
+    id: idFactory(),
+    ...(s.title && { title: s.title }),
+    ingredients: s.lines.map((line) => {
+      const { prepNote, note, ...ingredient } = toIngredient(line, idFactory);
+      const clippedPrep = clip(prepNote, LIMITS.prepNote);
+      const clippedNote = clip(note, LIMITS.note);
+      return {
+        ...ingredient,
+        item: clip(ingredient.item, LIMITS.item) ?? ingredient.item,
+        ...(clippedPrep && { prepNote: clippedPrep }),
+        ...(clippedNote && { note: clippedNote }),
+      };
+    }),
+  }));
+  const stepSections = sections(
+    raw.stepSections,
+    LIMITS.steps,
+    LIMITS.stepText,
+  ).map((s) => ({
+    id: idFactory(),
+    ...(s.title && { title: s.title }),
+    steps: s.lines.map((text) => ({
       id: idFactory(),
-      ...(s.title && { title: s.title }),
-      ingredients: s.lines.map((line) => toIngredient(line, idFactory)),
-    }));
-  if (ingredientSections.length === 0)
-    ingredientSections = [{ id: idFactory(), ingredients: [] }];
-
-  let stepSections = raw.stepSections
-    .map((s) => ({
-      title: s.title?.trim() || undefined,
-      lines: clean(s.lines),
-    }))
-    .filter((s) => s.lines.length > 0)
-    .map((s) => ({
-      id: idFactory(),
-      ...(s.title && { title: s.title }),
-      steps: s.lines.map((text) => ({
-        id: idFactory(),
-        text,
-        glossarySuppress: [],
-        ingredientRefs: [],
-      })),
-    }));
-  if (stepSections.length === 0)
-    stepSections = [{ id: idFactory(), steps: [] }];
+      text,
+      glossarySuppress: [],
+      ingredientRefs: [],
+    })),
+  }));
 
   const tags = [
     ...new Map(
       (raw.tags ?? [])
         .map((t) => t.trim())
-        .filter(Boolean)
+        .filter((t) => t && t.length <= LIMITS.tag)
         .map((t) => [t.toLowerCase(), t]),
     ).values(),
   ].slice(0, 12);
-  const positive = (n: number | undefined) =>
-    n !== undefined && Number.isFinite(n) && n > 0 ? n : undefined;
+
+  const title = clip(raw.title, LIMITS.title);
+  const description = clip(raw.description, LIMITS.description);
+  const yieldText = clip(raw.yieldText, LIMITS.yieldText);
+  const sourceAttribution = clip(raw.sourceAttribution, LIMITS.attribution);
+  const servings = inRange(raw.servings, LIMITS.servings);
+  const prepMinutes = minutes(raw.prepMinutes);
+  const cookMinutes = minutes(raw.cookMinutes);
+  const totalMinutes = minutes(raw.totalMinutes);
+  const sourceUrl = webUrl(raw.sourceUrl);
+  const heroImageUrl = webUrl(raw.heroImageUrl);
 
   const draft: RecipeDraft = {
-    title: raw.title?.trim() || 'Untitled recipe',
-    ...(raw.description?.trim() && { description: raw.description.trim() }),
-    ...(positive(raw.servings) !== undefined && {
-      servings: positive(raw.servings),
-    }),
-    ...(raw.yieldText?.trim() && { yieldText: raw.yieldText.trim() }),
-    ...(positive(raw.prepMinutes) !== undefined && {
-      prepMinutes: Math.round(raw.prepMinutes ?? 0),
-    }),
-    ...(positive(raw.cookMinutes) !== undefined && {
-      cookMinutes: Math.round(raw.cookMinutes ?? 0),
-    }),
-    ...(positive(raw.totalMinutes) !== undefined && {
-      totalMinutes: Math.round(raw.totalMinutes ?? 0),
-    }),
+    id: idFactory(),
+    title: title ?? 'Untitled recipe',
+    ...(description && { description }),
+    ...(servings !== undefined && { servings }),
+    ...(yieldText && { yieldText }),
+    ...(prepMinutes !== undefined && { prepMinutes }),
+    ...(cookMinutes !== undefined && { cookMinutes }),
+    ...(totalMinutes !== undefined && { totalMinutes }),
     sourceType: raw.sourceType,
-    ...(isUrl(raw.sourceUrl) && { sourceUrl: raw.sourceUrl }),
-    ...(raw.sourceAttribution?.trim() && {
-      sourceAttribution: raw.sourceAttribution.trim(),
-    }),
-    ...(isUrl(raw.heroImageUrl) && { heroImageUrl: raw.heroImageUrl }),
-    unitSystem: detectUnitSystem(
-      ingredientSections.flatMap((s) => s.ingredients),
-    ),
-    ingredientSections,
-    stepSections,
+    ...(sourceUrl && { sourceUrl }),
+    ...(sourceAttribution && { sourceAttribution }),
+    ...(heroImageUrl && { heroImageUrl }),
+    unitSystem: 'mixed',
+    ingredientSections: ingredientSections.length
+      ? ingredientSections
+      : [{ id: idFactory(), ingredients: [] }],
+    stepSections: stepSections.length
+      ? stepSections
+      : [{ id: idFactory(), steps: [] }],
     tags,
   };
+  draft.unitSystem = detectUnitSystem(allIngredients(draft));
   return autoLinkDraft(draft);
 }

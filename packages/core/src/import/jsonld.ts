@@ -1,11 +1,18 @@
 import type { IdFactory } from '../ids';
 import type { RecipeDraft } from '../schema/recipe';
+import { LIST_NUMBER } from '../text/normalize';
 import { buildDraft, type RawRecipe, type RawSection } from './draft-builder';
+import { headingTitle, isSectionHeading } from './headings';
 import { cleanLine, htmlToText } from './html';
 import { isoDurationToMinutes } from './iso-duration';
 
+// WHATWG URL exists in browsers, Deno and Node, but `lib: es2022` has no typings for it.
+declare const URL: new (url: string, base?: string) => { href: string };
+
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type JsonObject = { [key: string]: Json };
+
+const MAX_BLOCKS = 50;
 
 const isObject = (v: unknown): v is JsonObject =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -22,13 +29,29 @@ function hasType(node: JsonObject, type: string): boolean {
   );
 }
 
-/** Parse every `<script type="application/ld+json">` block in a page. Invalid blocks are skipped. */
-export function extractJsonLd(html: string): Json[] {
+/**
+ * Parse every `<script type="application/ld+json">` block in a page. Invalid blocks are skipped.
+ * Scans with indexOf so hostile pages (thousands of unclosed tags) stay linear.
+ */
+function extractJsonLd(html: string): Json[] {
+  const lower = html.toLowerCase();
   const blocks: Json[] = [];
-  const re =
-    /<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi;
-  for (const m of html.matchAll(re)) {
-    const body = (m[1] ?? '')
+  let pos = 0;
+  while (blocks.length < MAX_BLOCKS) {
+    const open = lower.indexOf('<script', pos);
+    if (open < 0) break;
+    const tagEnd = lower.indexOf('>', open);
+    if (tagEnd < 0) break;
+    const close = lower.indexOf('</script', tagEnd);
+    if (close < 0) break;
+    pos = close + 8;
+    if (
+      !/type\s*=\s*["']?application\/ld\+json/.test(lower.slice(open, tagEnd))
+    )
+      continue;
+
+    const body = html
+      .slice(tagEnd + 1, close)
       .trim()
       .replace(/^<!--|-->$/g, '')
       .replace(/^\/\*<!\[CDATA\[\*\/|\/\*\]\]>\*\/$/g, '')
@@ -48,19 +71,21 @@ export function extractJsonLd(html: string): Json[] {
   return blocks;
 }
 
-/** Find schema.org Recipe nodes anywhere in parsed JSON-LD (arrays, @graph, mainEntity, nesting). */
-export function findRecipeNodes(data: Json | Json[]): JsonObject[] {
-  const found: JsonObject[] = [];
+/** Walk parsed JSON-LD (arrays, @graph, mainEntity, nesting), depth-limited. */
+function walk(data: Json, visit: (node: JsonObject) => boolean | void): void {
   const seen = new Set<unknown>();
-  const visit = (v: Json | undefined, depth: number) => {
-    if (depth > 8 || v === undefined || v === null || seen.has(v)) return;
-    if (typeof v === 'object') seen.add(v);
-    if (Array.isArray(v)) return v.forEach((x) => visit(x, depth + 1));
-    if (!isObject(v)) return;
-    if (hasType(v, 'Recipe')) {
-      found.push(v);
+  const go = (v: Json | undefined, depth: number) => {
+    if (
+      depth > 8 ||
+      v === undefined ||
+      v === null ||
+      typeof v !== 'object' ||
+      seen.has(v)
+    )
       return;
-    }
+    seen.add(v);
+    if (Array.isArray(v)) return v.forEach((x) => go(x, depth + 1));
+    if (visit(v) === false) return;
     for (const key of [
       '@graph',
       'mainEntity',
@@ -68,11 +93,34 @@ export function findRecipeNodes(data: Json | Json[]): JsonObject[] {
       'itemListElement',
       'item',
       'hasPart',
-    ])
-      visit(v[key], depth + 1);
+    ]) {
+      go(v[key], depth + 1);
+    }
   };
-  visit(data as Json, 0);
-  return found;
+  go(data, 0);
+}
+
+/** Resolves `{ "@id": "…" }` references to the node with that id elsewhere on the page (Yoast graphs). */
+class NodeIndex {
+  private readonly byId = new Map<string, JsonObject>();
+
+  constructor(data: Json) {
+    walk(data, (node) => {
+      const id = str(node['@id']);
+      if (id && Object.keys(node).length > 1 && !this.byId.has(id))
+        this.byId.set(id, node);
+    });
+  }
+
+  deref(v: Json | undefined): Json | undefined {
+    if (!isObject(v)) return v;
+    const id = str(v['@id']);
+    return id && Object.keys(v).length === 1 ? (this.byId.get(id) ?? v) : v;
+  }
+
+  derefAll(v: Json | undefined): Json[] {
+    return asArray(v).map((x) => this.deref(x) ?? null);
+  }
 }
 
 function textOf(v: Json | undefined): string | undefined {
@@ -82,19 +130,25 @@ function textOf(v: Json | undefined): string | undefined {
   return undefined;
 }
 
+/** A blob of instructions: split on lines and on inline "2. " step numbers, then drop the numbers. */
+function splitBlob(blob: string): string[] {
+  return htmlToText(blob)
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!?])\s+(?=(?:step\s*)?\d+[.)]\s)/i))
+    .map((l) => l.replace(LIST_NUMBER, '').trim())
+    .filter(Boolean);
+}
+
 /** Instructions come as a string, strings, HowToStep(s) or HowToSection(s) — normalise to sections of lines. */
-function instructionSections(value: Json | undefined): RawSection[] {
+function instructionSections(
+  value: Json | undefined,
+  index: NodeIndex,
+): RawSection[] {
   const loose: string[] = [];
   const sections: RawSection[] = [];
 
-  const splitBlob = (blob: string): string[] =>
-    htmlToText(blob)
-      .split(/\n+/)
-      .flatMap((line) => line.split(/(?<=[.!?])\s+(?=(?:step\s*)?\d+[.)]\s)/i))
-      .map((l) => l.replace(/^\s*(?:step\s*)?\d+\s*[.):-]\s*/i, '').trim())
-      .filter(Boolean);
-
-  const stepLines = (item: Json): string[] => {
+  const stepLines = (raw: Json): string[] => {
+    const item = index.deref(raw);
     if (typeof item === 'string') return splitBlob(item);
     if (!isObject(item)) return [];
     // HowToStep may itself contain HowToDirection / HowToTip items.
@@ -102,7 +156,8 @@ function instructionSections(value: Json | undefined): RawSection[] {
       item['itemListElement'] !== undefined &&
       !hasType(item, 'HowToSection')
     ) {
-      const inner = asArray(item['itemListElement'])
+      const inner = index
+        .derefAll(item['itemListElement'])
         .map((x) => textOf(x))
         .filter((x): x is string => !!x);
       if (inner.length) return [cleanLine(inner.join(' '))];
@@ -111,10 +166,11 @@ function instructionSections(value: Json | undefined): RawSection[] {
     return t ? splitBlob(t) : [];
   };
 
-  for (const item of asArray(value)) {
+  for (const item of index.derefAll(value)) {
     if (isObject(item) && hasType(item, 'HowToSection')) {
+      const title = str(item['name']);
       sections.push({
-        ...(str(item['name']) && { title: cleanLine(str(item['name']) ?? '') }),
+        ...(title && { title: cleanLine(title) }),
         lines: asArray(item['itemListElement']).flatMap(stepLines),
       });
     } else {
@@ -128,32 +184,51 @@ function instructionSections(value: Json | undefined): RawSection[] {
 function ingredientSections(value: Json | undefined): RawSection[] {
   const sections: RawSection[] = [{ lines: [] }];
   for (const v of asArray(value)) {
-    const line = str(v) ?? textOf(v);
-    if (!line) continue;
-    const text = cleanLine(line);
+    const text = cleanLine(str(v) ?? textOf(v) ?? '');
     if (!text) continue;
-    const heading =
-      /^(?:for the\s+)?[^\d½¼¾⅓⅔].{0,40}:$/i.test(text) && !/\d/.test(text);
-    if (heading) sections.push({ title: text.replace(/:$/, ''), lines: [] });
+    if (isSectionHeading(text))
+      sections.push({ title: headingTitle(text), lines: [] });
     else sections[sections.length - 1]?.lines.push(text);
   }
   return sections;
 }
 
-function firstUrl(v: Json | undefined): string | undefined {
-  for (const item of asArray(v)) {
-    if (typeof item === 'string') return item;
-    if (isObject(item)) {
-      const url =
-        str(item['url']) ?? str(item['contentUrl']) ?? str(item['@id']);
-      if (url) return url;
-    }
+/** Absolute http(s) URL, resolving relative and protocol-relative ones against the page. */
+function absoluteUrl(
+  url: string | undefined,
+  base: string | undefined,
+): string | undefined {
+  if (!url) return undefined;
+  const candidate = url.startsWith('//') ? `https:${url}` : url;
+  try {
+    if (base) return new URL(candidate, base).href;
+    return /^https?:\/\//i.test(candidate)
+      ? new URL(candidate).href
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function firstImageUrl(
+  v: Json | undefined,
+  index: NodeIndex,
+): string | undefined {
+  for (const item of index.derefAll(v)) {
+    const url =
+      typeof item === 'string'
+        ? item
+        : isObject(item)
+          ? (str(item['url']) ?? str(item['contentUrl']))
+          : undefined;
+    if (url) return url;
   }
   return undefined;
 }
 
-function names(v: Json | undefined): string[] {
-  return asArray(v)
+function names(v: Json | undefined, index: NodeIndex): string[] {
+  return index
+    .derefAll(v)
     .map((x) =>
       typeof x === 'string' ? x : isObject(x) ? str(x['name']) : undefined,
     )
@@ -184,7 +259,7 @@ function tagList(node: JsonObject): string[] {
     asArray(v)
       .flatMap((x) => (typeof x === 'string' ? x.split(',') : []))
       .map((t) => cleanLine(t))
-      .filter((t) => t && t.length <= 40);
+      .filter(Boolean);
   return [
     ...split(node['recipeCuisine']),
     ...split(node['recipeCategory']),
@@ -192,16 +267,28 @@ function tagList(node: JsonObject): string[] {
   ];
 }
 
-export interface ImportOptions {
+export interface JsonLdImportOptions {
+  /** The page's URL: becomes the draft's source and resolves relative image URLs. */
   sourceUrl?: string;
   idFactory?: IdFactory;
 }
 
-/** Convert one schema.org Recipe node into a draft for review. */
-export function recipeFromJsonLd(
-  node: JsonObject,
-  options: ImportOptions = {},
-): RecipeDraft {
+/** Import the first schema.org Recipe found in a page's JSON-LD, or undefined if there is none. */
+export function importRecipeFromHtml(
+  html: string,
+  options: JsonLdImportOptions = {},
+): RecipeDraft | undefined {
+  const data = extractJsonLd(html);
+  let node: JsonObject | undefined;
+  walk(data, (n) => {
+    if (!node && hasType(n, 'Recipe')) node = n;
+    return !node;
+  });
+  if (!node) return undefined;
+
+  const index = new NodeIndex(data);
+  const sourceUrl =
+    options.sourceUrl ?? absoluteUrl(str(node['url']), undefined);
   const raw: RawRecipe = {
     sourceType: 'url',
     title: cleanLine(str(node['name']) ?? str(node['headline']) ?? ''),
@@ -210,26 +297,17 @@ export function recipeFromJsonLd(
     prepMinutes: isoDurationToMinutes(node['prepTime']),
     cookMinutes: isoDurationToMinutes(node['cookTime']),
     totalMinutes: isoDurationToMinutes(node['totalTime']),
-    sourceUrl: options.sourceUrl ?? str(node['url']),
+    sourceUrl,
     sourceAttribution:
-      names(node['author']).join(', ') ||
-      names(node['publisher']).join(', ') ||
+      names(node['author'], index).join(', ') ||
+      names(node['publisher'], index).join(', ') ||
       undefined,
-    heroImageUrl: firstUrl(node['image']),
+    heroImageUrl: absoluteUrl(firstImageUrl(node['image'], index), sourceUrl),
     tags: tagList(node),
     ingredientSections: ingredientSections(
       node['recipeIngredient'] ?? node['ingredients'],
     ),
-    stepSections: instructionSections(node['recipeInstructions']),
+    stepSections: instructionSections(node['recipeInstructions'], index),
   };
   return buildDraft(raw, options.idFactory);
-}
-
-/** Import the first recipe found in a page's JSON-LD, or undefined if there is none. */
-export function importRecipeFromHtml(
-  html: string,
-  options: ImportOptions = {},
-): RecipeDraft | undefined {
-  const node = findRecipeNodes(extractJsonLd(html))[0];
-  return node ? recipeFromJsonLd(node, options) : undefined;
 }

@@ -3,12 +3,22 @@ import { join } from 'node:path';
 import { RecipeDraftSchema, allIngredients, allSteps } from '../schema/recipe';
 import { decodeEntities, htmlToText } from './html';
 import { isoDurationToMinutes } from './iso-duration';
-import { extractJsonLd, findRecipeNodes, importRecipeFromHtml } from './jsonld';
-import { jsonLdParser } from './parser';
+import { importRecipeFromHtml } from './jsonld';
+import { htmlParser } from './parser';
 
 const fixture = (name: string) =>
   readFileSync(join(__dirname, 'fixtures', name), 'utf8');
 let n = 0;
+const page = (data: unknown) =>
+  `<html><script type="application/ld+json">${JSON.stringify(data)}</script></html>`;
+const recipePage = (fields: Record<string, unknown>) =>
+  page({
+    '@type': 'Recipe',
+    name: 'Test',
+    recipeIngredient: ['1 egg'],
+    recipeInstructions: 'Cook it.',
+    ...fields,
+  });
 const ids = () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`;
 
 describe('JSON-LD import', () => {
@@ -144,18 +154,146 @@ describe('JSON-LD import', () => {
   it('skips invalid JSON-LD blocks', () => {
     const html =
       '<script type="application/ld+json">{ not json</script><script type="application/ld+json">{"@type":"Recipe","name":"X"}</script>';
-    expect(extractJsonLd(html)).toHaveLength(1);
-    expect(findRecipeNodes(extractJsonLd(html))).toHaveLength(1);
+    expect(importRecipeFromHtml(html)?.title).toBe('X');
   });
 
-  it('is exposed through the RecipeParser interface', async () => {
-    expect(jsonLdParser.canParse({ kind: 'text', text: '' })).toBe(false);
-    const draft = await jsonLdParser.parse({
+  it('keeps numbers that start a step', () => {
+    const html = recipePage({
+      recipeInstructions: [
+        { '@type': 'HowToStep', text: '1.5 litres of water go in the pot.' },
+        { '@type': 'HowToStep', text: '10-12 minutes is enough.' },
+        { '@type': 'HowToStep', name: 'Serve hot.' },
+      ],
+    });
+    expect(allSteps(importRecipeFromHtml(html)!).map((s) => s.text)).toEqual([
+      '1.5 litres of water go in the pot.',
+      '10-12 minutes is enough.',
+      'Serve hot.',
+    ]);
+  });
+
+  it('accepts instructions as an array of strings', () => {
+    const html = recipePage({ recipeInstructions: ['Mix.', 'Bake.'] });
+    expect(allSteps(importRecipeFromHtml(html)!).map((s) => s.text)).toEqual([
+      'Mix.',
+      'Bake.',
+    ]);
+  });
+
+  it('resolves @id references and relative image URLs', () => {
+    const html = page({
+      '@context': 'https://schema.org',
+      '@graph': [
+        { '@type': 'Person', '@id': '#author', name: 'Pat' },
+        { '@type': 'ImageObject', '@id': '#img', url: '/img/dish.jpg' },
+        {
+          '@type': 'Recipe',
+          name: 'R',
+          author: { '@id': '#author' },
+          image: { '@id': '#img' },
+          recipeIngredient: ['1 egg'],
+          recipeInstructions: 'Cook.',
+        },
+      ],
+    });
+    expect(
+      importRecipeFromHtml(html, { sourceUrl: 'https://example.test/r/1' }),
+    ).toMatchObject({
+      sourceAttribution: 'Pat',
+      heroImageUrl: 'https://example.test/img/dish.jpg',
+    });
+    expect(
+      importRecipeFromHtml(recipePage({ image: '//cdn.example.test/a.jpg' }))
+        ?.heroImageUrl,
+    ).toBe('https://cdn.example.test/a.jpg');
+  });
+
+  it('drops non-http URLs from the page', () => {
+    const draft = importRecipeFromHtml(
+      recipePage({
+        url: 'javascript:alert(1)',
+        image: 'data:image/png;base64,xx',
+      }),
+    );
+    expect(draft?.sourceUrl).toBeUndefined();
+    expect(draft?.heroImageUrl).toBeUndefined();
+  });
+
+  it('clips hostile sizes so the draft always validates', () => {
+    const html = recipePage({
+      name: 'x'.repeat(5000),
+      recipeYield: '9'.repeat(30),
+      prepTime: 'P99999999D',
+      keywords: 'k'.repeat(100),
+      recipeIngredient: Array.from(
+        { length: 2000 },
+        (_, i) => `${i + 1} g thing${i}`,
+      ),
+      recipeInstructions: Array.from(
+        { length: 2000 },
+        (_, i) => `Step ${i} ${'y'.repeat(6000)}`,
+      ),
+    });
+    const draft = importRecipeFromHtml(html)!;
+    expect(RecipeDraftSchema.safeParse(draft).success).toBe(true);
+    expect(allIngredients(draft)).toHaveLength(300);
+    expect(allSteps(draft)).toHaveLength(200);
+    expect(draft.servings).toBeUndefined();
+    expect(draft.prepMinutes).toBeUndefined();
+    expect(draft.tags).toEqual([]);
+  });
+
+  it('stays linear on hostile markup', () => {
+    const started = performance.now();
+    expect(
+      importRecipeFromHtml(
+        '<script type="application/ld+json">'.repeat(40_000),
+      ),
+    ).toBeUndefined();
+    expect(htmlToText('<'.repeat(80_000) + '<a'.repeat(40_000))).toBeDefined();
+    expect(htmlToText('<script>x</script>'.repeat(40_000))).toBe('');
+    expect(performance.now() - started).toBeLessThan(1500);
+  });
+});
+
+describe('htmlParser', () => {
+  it('uses JSON-LD when present', async () => {
+    const draft = await htmlParser.parse({
       kind: 'html',
       html: fixture('single-recipe.html'),
       url: 'https://example.test/p',
     });
-    expect(draft?.sourceUrl).toBe('https://example.test/p');
+    expect(draft).toMatchObject({
+      title: 'Fluffy Pancakes',
+      sourceUrl: 'https://example.test/p',
+    });
+  });
+
+  it('falls back to the page text when there is no JSON-LD', async () => {
+    const html = `<html><head><title>x</title></head><body><nav>Home | Recipes</nav><article>
+      <h1>Garlic Bread</h1><h2>Ingredients</h2><ul><li>1 baguette</li><li>50g butter</li><li>2 garlic cloves</li></ul>
+      <h2>Method</h2><ol><li>Mix the butter and garlic.</li><li>Spread on the bread and bake for 10 minutes.</li></ol>
+      </article><footer>© Site</footer></body></html>`;
+    const draft = await htmlParser.parse({
+      kind: 'html',
+      html,
+      url: 'https://example.test/gb',
+    });
+    expect(draft).toMatchObject({
+      title: 'Garlic Bread',
+      sourceType: 'url',
+      sourceUrl: 'https://example.test/gb',
+    });
+    expect(allIngredients(draft!).map((i) => i.item)).toEqual([
+      'baguette',
+      'butter',
+      'garlic cloves',
+    ]);
+    expect(allSteps(draft!)).toHaveLength(2);
+  });
+
+  it('does not handle text input', () => {
+    expect(htmlParser.canParse({ kind: 'text', text: '' })).toBe(false);
   });
 });
 
@@ -178,5 +316,15 @@ describe('helpers', () => {
     expect(
       htmlToText('<p>One</p><p>Two<br>Three</p><script>x()</script>'),
     ).toBe('One\nTwo\nThree');
+  });
+
+  it('never turns encoded or broken markup back into tags', () => {
+    expect(htmlToText('Hi &lt;img src=x onerror=alert(1)&gt; there')).toBe(
+      'Hi there',
+    );
+    expect(htmlToText('Hi <img src=x onerror=alert(1)')).toBe('Hi');
+    expect(decodeEntities('&constructor; &toString;')).toBe(
+      '&constructor; &toString;',
+    );
   });
 });

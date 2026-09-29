@@ -1,4 +1,4 @@
-import { detectDurations, formatClock, formatDuration } from './durations';
+import { detectDurations, formatDuration } from './durations';
 
 const find = (text: string) =>
   detectDurations(text).map(({ text: t, minSeconds, maxSeconds }) => [
@@ -46,9 +46,30 @@ describe('detectDurations', () => {
   });
 
   it.each([
+    ['Roast for 1 hr 15 until tender.', [['1 hr 15', 4500, 4500]]],
+    ['Prove for 1h 30.', [['1h 30', 5400, 5400]]],
+    ['Simmer 1 to 1½ hours.', [['1 to 1½ hours', 3600, 5400]]],
+    ['Pulse for 5-10 secs.', [['5-10 secs', 5, 10]]],
+    [
+      'Marinate 2 hours, 10 minutes before cooking take it out.',
+      [
+        ['2 hours', 7200, 7200],
+        ['10 minutes', 600, 600],
+      ],
+    ],
+    ['Bake 1 hour at 180C.', [['1 hour', 3600, 3600]]],
+    ['Cook 1 hour 2 cups at a time.', [['1 hour', 3600, 3600]]],
+  ])('%s', (text, expected) => {
+    expect(find(text)).toEqual(expected);
+  });
+
+  it.each([
     'Preheat the oven to 180C.',
     'Add 2 tbsp oil.',
     'Cut into 5 m strips.',
+    'Cut into 2 cm pieces.',
+    'Whisk the whites in a second bowl.',
+    'Repeat a second time.',
     'Serves 4.',
     'Add a mixture of herbs.',
     'Leave overnight.',
@@ -64,17 +85,11 @@ describe('detectDurations', () => {
   });
 });
 
-describe('formatDuration / formatClock', () => {
+describe('formatDuration', () => {
   it('formats compact durations', () => {
     expect(formatDuration(4500)).toBe('1 h 15 min');
     expect(formatDuration(120)).toBe('2 min');
     expect(formatDuration(45)).toBe('45 s');
     expect(formatDuration(0)).toBe('0 s');
-  });
-
-  it('formats clocks, including overrun', () => {
-    expect(formatClock(299)).toBe('4:59');
-    expect(formatClock(3900)).toBe('1:05:00');
-    expect(formatClock(-7)).toBe('+0:07');
   });
 });

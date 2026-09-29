@@ -175,10 +175,68 @@ minutes until pale golden.`,
     });
   });
 
-  it('never loses a recipe with no structure at all', () => {
+  it('keeps an unstructured method as a step rather than a title', () => {
     const draft = parseRecipeText('Just mix everything and bake it.');
-    expect(draft.title).toBe('Just mix everything and bake it');
+    expect(draft.title).toBe('Untitled recipe');
+    expect(allSteps(draft).map((s) => s.text)).toEqual([
+      'Just mix everything and bake it.',
+    ]);
     expect(RecipeDraftSchema.safeParse(draft).success).toBe(true);
+  });
+
+  it('handles empty input and Windows line endings', () => {
+    expect(RecipeDraftSchema.safeParse(parseRecipeText('')).success).toBe(true);
+    const crlf = String.fromCharCode(13, 10);
+    const draft = parseRecipeText(
+      ['Toast', '1 slice bread', 'Toast the bread until golden.'].join(crlf),
+    );
+    expect(draft.title).toBe('Toast');
+    expect(allSteps(draft)).toHaveLength(1);
+  });
+
+  it('keeps prose that merely starts like metadata', () => {
+    const draft = parseRecipeText(`Stew
+Ingredients
+1 kg beef
+Method
+Brown the beef.
+Cook time will vary by oven.
+Serves well with rice.`);
+    expect(allSteps(draft).map((s) => s.text)).toEqual([
+      'Brown the beef.',
+      'Cook time will vary by oven.',
+      'Serves well with rice.',
+    ]);
+    expect(draft.servings).toBeUndefined();
+  });
+
+  it('starts the method at a numbered step even without a Method heading', () => {
+    const draft = parseRecipeText(`Crepes
+Ingredients
+1 cup flour
+2 eggs
+
+1. Mix everything.
+2. Cook thinly.`);
+    expect(allIngredients(draft).map((i) => i.item)).toEqual(['flour', 'eggs']);
+    expect(allSteps(draft).map((s) => s.text)).toEqual([
+      'Mix everything.',
+      'Cook thinly.',
+    ]);
+  });
+
+  it('does not mistake a "For the ..." sentence for a heading', () => {
+    const draft = parseRecipeText(`Steak
+Ingredients
+1 steak
+Method
+Sear the steak.
+For the best flavour, rest it.`);
+    expect(draft.stepSections).toHaveLength(1);
+    expect(allSteps(draft).map((s) => s.text)).toEqual([
+      'Sear the steak.',
+      'For the best flavour, rest it.',
+    ]);
   });
 
   it('is exposed through the RecipeParser interface', async () => {

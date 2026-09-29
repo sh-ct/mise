@@ -6,6 +6,7 @@ const ID = (n: number) =>
 const draft = (
   overrides: Partial<RecipeDraftInput> = {},
 ): RecipeDraftInput => ({
+  id: ID(0),
   title: 'Pancakes',
   sourceType: 'manual',
   ingredientSections: [
@@ -87,6 +88,47 @@ describe('RecipeDraftSchema', () => {
       }),
     );
     expect(result.success).toBe(false);
+  });
+
+  it('only accepts http(s) URLs', () => {
+    expect(
+      RecipeDraftSchema.safeParse(draft({ sourceUrl: 'javascript:alert(1)' }))
+        .success,
+    ).toBe(false);
+    expect(
+      RecipeDraftSchema.safeParse(draft({ heroImageUrl: 'data:text/html,x' }))
+        .success,
+    ).toBe(false);
+    expect(
+      RecipeDraftSchema.safeParse(
+        draft({ sourceUrl: 'https://example.test/r' }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it('enforces the database size limits', () => {
+    expect(
+      RecipeDraftSchema.safeParse(draft({ title: 'x'.repeat(201) })).success,
+    ).toBe(false);
+    expect(
+      RecipeDraftSchema.safeParse(draft({ tags: ['x'.repeat(41)] })).success,
+    ).toBe(false);
+    expect(
+      RecipeDraftSchema.safeParse(draft({ prepMinutes: 1e9 })).success,
+    ).toBe(false);
+  });
+
+  it('rejects duplicate ids and duplicate step references', () => {
+    const dupSection = draft();
+    dupSection.stepSections[0]!.id = ID(1);
+    expect(RecipeDraftSchema.safeParse(dupSection).success).toBe(false);
+
+    const dupRef = draft();
+    dupRef.stepSections[0]!.steps[0]!.ingredientRefs = [
+      { ingredientId: ID(2) },
+      { ingredientId: ID(2) },
+    ];
+    expect(RecipeDraftSchema.safeParse(dupRef).success).toBe(false);
   });
 
   it('requires a title and at least one section of each kind', () => {

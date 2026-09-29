@@ -1,4 +1,9 @@
-import { escapeRegExp, words } from '../text/normalize';
+import {
+  escapeRegExp,
+  overlaps,
+  words,
+  type TextSpan,
+} from '../text/normalize';
 
 export interface GlossaryMatchRules {
   /** Only match if one of these words appears within `window` words after the term. */
@@ -19,10 +24,7 @@ export interface GlossaryTerm {
   plainPhrasing?: string;
 }
 
-export interface GlossaryMatch {
-  start: number;
-  end: number;
-  text: string;
+export interface GlossaryMatch extends TextSpan {
   slug: string;
 }
 
@@ -37,7 +39,7 @@ interface Phrase {
  *
  * - Case-insensitive, whole-word; spaces and hyphens are interchangeable ("sous vide" = "sous-vide").
  * - Simple inflections of the last word: fold → folds/folded/folding, reduce → reduced/reducing,
- *   chop → chopped/chopping.
+ *   chop → chopped/chopping, fry → fried/frying.
  * - Longest phrase wins; matches never overlap.
  * - First mention per step only; slugs in `suppress` are skipped.
  */
@@ -64,9 +66,17 @@ export class GlossaryMatcher {
       .sort((a, b) => b.length - a.length);
   }
 
+  /**
+   * @param options.suppress slugs not to match in this step
+   * @param options.exclude spans already used by something else (e.g. timers); a term there doesn't count
+   *   as its first mention
+   */
   match(
     text: string,
-    options: { suppress?: readonly string[] } = {},
+    options: {
+      suppress?: readonly string[];
+      exclude?: readonly TextSpan[];
+    } = {},
   ): GlossaryMatch[] {
     const suppress = new Set(options.suppress ?? []);
 
@@ -88,7 +98,10 @@ export class GlossaryMatcher {
 
     const taken: GlossaryMatch[] = [];
     for (const c of candidates) {
-      if (!taken.some((t) => c.start < t.end && c.end > t.start)) taken.push(c);
+      const blocked = [...taken, ...(options.exclude ?? [])].some((t) =>
+        overlaps(c, t),
+      );
+      if (!blocked) taken.push(c);
     }
 
     // First mention per slug.
@@ -111,6 +124,8 @@ function phrasePattern(phrase: string): string {
   if (last.length < 3 || !/^\p{L}+$/u.test(last)) tail = escapeRegExp(last);
   else if (last.endsWith('e'))
     tail = `${escapeRegExp(last.slice(0, -1))}(?:e|es|ed|ing)`;
+  else if (/[^aeiou]y$/.test(last))
+    tail = `${escapeRegExp(last.slice(0, -1))}(?:y|ies|ied|ying)`;
   else
     tail = `${escapeRegExp(last)}(?:${escapeRegExp(last.slice(-1))})?(?:s|es|ed|ing)?`;
   return [...head, tail].join('[\\s-]+');

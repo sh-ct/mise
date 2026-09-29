@@ -1,9 +1,11 @@
 import type { IdFactory } from '../ids';
 import { looksLikeIngredient } from '../ingredients/parse-ingredient';
 import { parseLeadingQuantity } from '../quantity/quantity';
-import type { RecipeDraft } from '../schema/recipe';
+import type { RecipeDraft, SourceType } from '../schema/recipe';
 import { detectDurations } from '../steps/durations';
+import { BULLET, LIST_NUMBER } from '../text/normalize';
 import { buildDraft, type RawRecipe, type RawSection } from './draft-builder';
+import { headingTitle, isSectionHeading } from './headings';
 
 const INGREDIENT_HEADER =
   /^(?:ingredients?|you(?:'ll| will)? need|what you(?:'ll)? need|shopping list)\s*:?\s*$/i;
@@ -13,24 +15,20 @@ const NOTES_HEADER =
   /^(?:notes?|tips?|cook'?s notes?|storage|variations?)\s*:?\s*$/i;
 const META =
   /^(serves|servings?|makes|yields?|prep(?:aration)? time|cook(?:ing)? time|total time|ready in)\b\s*:?\s*(.*)$/i;
-const NUMBERED = /^\s*(?:step\s*)?(\d+)\s*[.):-]\s+/i;
-const BULLET = /^\s*[-*•·▢□☐◦‣]\s*/u;
 
 type Mode = 'preamble' | 'ingredients' | 'steps' | 'notes';
 
 export interface TextImportOptions {
-  sourceType?: 'text' | 'scan';
+  sourceType?: Extract<SourceType, 'text' | 'scan' | 'url'>;
+  sourceUrl?: string;
   idFactory?: IdFactory;
 }
 
-const isSubheading = (line: string) =>
-  /:$/.test(line) &&
-  line.split(/\s+/).length <= 6 &&
-  !parseLeadingQuantity(line.replace(BULLET, ''))
-    ? true
-    : /^for the\s+\S.{0,30}$/i.test(line);
-
 const endsSentence = (line: string) => /[.!?)]["'”’]?$/.test(line);
+
+/** A method sentence rather than a title: "Just mix everything and bake it." */
+const isSentence = (line: string) =>
+  endsSentence(line) && line.split(/\s+/).length >= 5;
 
 /**
  * Split pasted or OCR'd recipe text into a draft. Works with and without headings:
@@ -38,7 +36,7 @@ const endsSentence = (line: string) => /[.!?)]["'”’]?$/.test(line);
  * - "Ingredients" / "Method" style headings switch sections; "For the sauce:" starts a sub-section.
  * - Without headings, quantity-led and short lines are ingredients until the first sentence-like line.
  * - Numbered steps ("1.", "Step 2:") are split on their numbers; hard-wrapped lines are re-joined.
- * - "Serves 4", "Prep time: 15 mins" etc. are read as metadata.
+ * - "Serves 4", "Prep time: 15 mins" etc. are read as metadata when a number can be read from them.
  */
 export function parseRecipeText(
   text: string,
@@ -51,6 +49,7 @@ export function parseRecipeText(
 
   const raw: RawRecipe = {
     sourceType: options.sourceType ?? 'text',
+    ...(options.sourceUrl && { sourceUrl: options.sourceUrl }),
     ingredientSections: [{ lines: [] }],
     stepSections: [{ lines: [] }],
   };
@@ -65,8 +64,8 @@ export function parseRecipeText(
   const addStep = (line: string, forceNew: boolean) => {
     const section = current(raw.stepSections);
     const last = section.lines.length - 1;
-    const isNumbered = NUMBERED.test(line);
-    const content = line.replace(NUMBERED, '').replace(BULLET, '');
+    const isNumbered = LIST_NUMBER.test(line);
+    const content = line.replace(LIST_NUMBER, '').replace(BULLET, '');
     if (isNumbered) numbered = true;
     const continuation =
       last >= 0 &&
@@ -87,10 +86,12 @@ export function parseRecipeText(
     prevBlank = false;
 
     const meta = META.exec(line);
-    if (meta && line.length < 60) {
-      applyMeta(raw, (meta[1] ?? '').toLowerCase(), meta[2] ?? '', line);
+    if (
+      meta &&
+      line.length < 60 &&
+      applyMeta(raw, (meta[1] ?? '').toLowerCase(), meta[2] ?? '', line)
+    )
       continue;
-    }
     if (INGREDIENT_HEADER.test(line)) {
       mode = 'ingredients';
       sawHeadings = true;
@@ -108,20 +109,26 @@ export function parseRecipeText(
     }
 
     if (mode === 'preamble') {
-      if (!raw.title && !looksLikeQuantityLine(line) && line.length <= 100) {
+      if (
+        !raw.title &&
+        !looksLikeQuantityLine(line) &&
+        !isSentence(line) &&
+        line.length <= 100
+      ) {
         raw.title = line.replace(/[:.]$/, '');
         continue;
       }
       // Headless text: decide per line.
+      const haveIngredients = current(raw.ingredientSections).lines.length > 0;
       if (
         looksLikeQuantityLine(line) ||
-        (looksLikeIngredient(line) &&
-          current(raw.ingredientSections).lines.length > 0)
+        (looksLikeIngredient(line) && haveIngredients)
       ) {
         mode = 'ingredients';
       } else if (
-        current(raw.ingredientSections).lines.length > 0 ||
-        NUMBERED.test(line)
+        haveIngredients ||
+        LIST_NUMBER.test(line) ||
+        (!raw.title && isSentence(line))
       ) {
         mode = 'steps';
       } else {
@@ -131,13 +138,18 @@ export function parseRecipeText(
     }
 
     if (mode === 'ingredients') {
-      if (isSubheading(line)) {
+      if (isSectionHeading(line)) {
         pushSection(raw.ingredientSections, line);
         continue;
       }
-      // Without headings, the first sentence-like line ends the ingredient list.
-      if (!sawHeadings && !looksLikeIngredient(line)) {
+      // A numbered sentence starts the method even without a "Method" heading; without any headings,
+      // so does the first sentence-like line.
+      const numberedStep =
+        LIST_NUMBER.test(line) &&
+        !looksLikeQuantityLine(line.replace(LIST_NUMBER, ''));
+      if (numberedStep || (!sawHeadings && !looksLikeIngredient(line))) {
         mode = 'steps';
+        numbered = false;
       } else {
         current(raw.ingredientSections).lines.push(line.replace(BULLET, ''));
         continue;
@@ -145,7 +157,7 @@ export function parseRecipeText(
     }
 
     if (mode === 'steps') {
-      if (isSubheading(line) && !NUMBERED.test(line)) {
+      if (isSectionHeading(line)) {
         pushSection(raw.stepSections, line);
         numbered = false;
         continue;
@@ -164,7 +176,7 @@ export function parseRecipeText(
 function looksLikeQuantityLine(line: string): boolean {
   const text = line.replace(BULLET, '');
   return (
-    !NUMBERED.test(line) &&
+    !LIST_NUMBER.test(line) &&
     !!parseLeadingQuantity(text) &&
     text.length <= 80 &&
     !/[.!?]$/.test(text)
@@ -172,28 +184,37 @@ function looksLikeQuantityLine(line: string): boolean {
 }
 
 function pushSection(sections: RawSection[], heading: string) {
-  const title = heading.replace(/:$/, '').trim();
+  const title = headingTitle(heading);
   const last = sections[sections.length - 1];
   if (last && last.lines.length === 0 && !last.title) last.title = title;
   else sections.push({ title, lines: [] });
 }
 
-function applyMeta(raw: RawRecipe, key: string, value: string, line: string) {
+/** Apply a metadata line. Returns false when nothing could be read, so the line is kept as text. */
+function applyMeta(
+  raw: RawRecipe,
+  key: string,
+  value: string,
+  line: string,
+): boolean {
+  const n = /\d+/.exec(value)?.[0];
   if (/^(serves|servings?)$/.test(key)) {
-    const n = /\d+/.exec(value)?.[0];
-    if (n) raw.servings = Number(n);
-    if (/[-–]|to/.test(value)) raw.yieldText = line;
-    return;
+    if (!n) return false;
+    raw.servings = Number(n);
+    if (/[-–]|\bto\b/.test(value)) raw.yieldText = line;
+    return true;
   }
   if (/^(makes|yields?)$/.test(key)) {
-    const n = /\d+/.exec(value)?.[0];
-    if (n) raw.servings = Number(n);
-    raw.yieldText = value.trim() || line;
-    return;
+    if (!n) return false;
+    raw.servings = Number(n);
+    raw.yieldText = value.trim();
+    return true;
   }
-  const minutes =
-    Math.round((detectDurations(value)[0]?.minSeconds ?? 0) / 60) || undefined;
+  const seconds = detectDurations(value)[0]?.minSeconds;
+  if (!seconds) return false;
+  const minutes = Math.round(seconds / 60);
   if (key.startsWith('prep')) raw.prepMinutes = minutes;
   else if (key.startsWith('cook')) raw.cookMinutes = minutes;
   else raw.totalMinutes = minutes;
+  return true;
 }

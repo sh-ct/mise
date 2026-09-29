@@ -1,27 +1,39 @@
+import { escapeRegExp } from '../text/normalize';
+
+export interface Density {
+  /** Grams per millilitre. */
+  gPerMl: number;
+  /** Liquids stay in volume in metric (ml of milk); solids are weighed (g of flour). */
+  liquid: boolean;
+}
+
 /**
- * Approximate densities (g per ml) for converting between volume and mass. Kitchen-accurate at best:
- * flour in particular varies a lot with how it's scooped. Used only when the user asks for a conversion
- * across dimensions; never applied silently to stored data.
- *
- * Keys are matched against the ingredient item (lower-case, longest key contained in the item wins).
+ * Approximate densities for converting between volume and mass. Kitchen-accurate at best: flour in
+ * particular varies a lot with how it's scooped. Used only for display conversions, never applied to
+ * stored data. Keys are matched against the ingredient item as whole words; the longest key wins.
  */
-const DENSITIES: Record<string, number> = {
+const LIQUIDS: Record<string, number> = {
   water: 1.0,
   stock: 1.0,
   broth: 1.0,
   milk: 1.03,
   buttermilk: 1.03,
   cream: 1.0,
-  yoghurt: 1.05,
-  yogurt: 1.05,
   oil: 0.92,
   'olive oil': 0.91,
-  butter: 0.96,
   honey: 1.42,
   'maple syrup': 1.32,
   'golden syrup': 1.42,
   molasses: 1.4,
   treacle: 1.4,
+  wine: 0.99,
+  vinegar: 1.01,
+};
+
+const SOLIDS: Record<string, number> = {
+  yoghurt: 1.05,
+  yogurt: 1.05,
+  butter: 0.96,
   flour: 0.53,
   'plain flour': 0.53,
   'all-purpose flour': 0.53,
@@ -55,16 +67,26 @@ const DENSITIES: Record<string, number> = {
   panko: 0.2,
 };
 
-const KEYS = Object.keys(DENSITIES).sort((a, b) => b.length - a.length);
+const TABLE = new Map<string, Density>([
+  ...Object.entries(LIQUIDS).map(([k, gPerMl]): [string, Density] => [
+    k,
+    { gPerMl, liquid: true },
+  ]),
+  ...Object.entries(SOLIDS).map(([k, gPerMl]): [string, Density] => [
+    k,
+    { gPerMl, liquid: false },
+  ]),
+]);
 
-export function densityFor(item: string): number | undefined {
+const MATCHERS = [...TABLE.keys()]
+  .sort((a, b) => b.length - a.length)
+  .map((key) => ({
+    key,
+    re: new RegExp(`(^|[^\\p{L}])${escapeRegExp(key)}($|[^\\p{L}])`, 'u'),
+  }));
+
+export function densityFor(item: string): Density | undefined {
   const lower = item.toLowerCase();
-  const key = KEYS.find((k) =>
-    new RegExp(`(^|[^\\p{L}])${escapeRegExp(k)}($|[^\\p{L}])`, 'u').test(lower),
-  );
-  return key === undefined ? undefined : DENSITIES[key];
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = MATCHERS.find(({ re }) => re.test(lower));
+  return match && TABLE.get(match.key);
 }

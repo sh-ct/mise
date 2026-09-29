@@ -3,6 +3,7 @@ import {
   expiryMessage,
   extendOptions,
   extendTimer,
+  formatClock,
   remainingMs,
   startTimer,
   timerState,
@@ -61,5 +62,18 @@ describe('cook timers', () => {
     expect(extendOptions({ ...range, rangeExtraSeconds: 180 })).toEqual([
       60, 120, 180, 300,
     ]);
+  });
+
+  it('uses up the range when extended, so the next expiry is final', () => {
+    const extended = extendTimer(range, 120, T0 + 600_000);
+    expect(extended.rangeExtraSeconds).toBe(0);
+    expect(expiryMessage(extended)).toBe("10-12 mins: time's up");
+    expect(extendTimer(range, 60, T0).rangeExtraSeconds).toBe(60);
+  });
+
+  it('formats countdown clocks, including overrun', () => {
+    expect(formatClock(299)).toBe('4:59');
+    expect(formatClock(3900)).toBe('1:05:00');
+    expect(formatClock(-7)).toBe('+0:07');
   });
 });

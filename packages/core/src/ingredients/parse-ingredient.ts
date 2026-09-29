@@ -1,23 +1,16 @@
 import { newId, type IdFactory } from '../ids';
 import { parseLeadingQuantity } from '../quantity/quantity';
 import type { Ingredient } from '../schema/recipe';
+import { BULLET, LIST_NUMBER } from '../text/normalize';
+import { convert } from '../units/convert';
 import { matchUnitPrefix } from '../units/units';
 
-export interface ParsedIngredient {
-  qtyMin?: number;
-  qtyMax?: number;
-  unit?: string;
-  item: string;
-  prepNote?: string;
-  note?: string;
-  optional: boolean;
-  rawText: string;
-}
+export type ParsedIngredient = Omit<Ingredient, 'id'>;
 
-const BULLET = /^\s*(?:[-*•·▢□☐◦‣–—]|\d+[.)](?=\s))\s*/u;
 const OPTIONAL = /\s*(?:\(\s*optional\s*\)|,?\s*\boptional\b\s*[:,]?)\s*/i;
 const SIZE_BEFORE_UNIT =
   /^(small|medium|large|big|heaped|heaping|level|rounded|generous|scant|good)\s+/i;
+const MULTIPLIER = /^[x×]\s*/i;
 const TO_TASTE =
   /,?\s*\b(to taste|as needed|as required|for (?:serving|garnish|dusting|greasing|frying|brushing)[^,]*)\s*$/i;
 
@@ -26,12 +19,16 @@ const TO_TASTE =
  * stays in `item`, and the original line is always kept in `rawText`.
  *
  *   "2 cups (250 g) plain flour, sifted" → { qtyMin: 2, unit: 'cup', item: 'plain flour', prepNote: 'sifted', note: '250 g' }
- *   "1 (14 oz) can chopped tomatoes"     → { qtyMin: 1, unit: 'can', item: 'chopped tomatoes', note: '14 oz' }
+ *   "2 x 400g tins chopped tomatoes"     → { qtyMin: 2, unit: 'tin', item: 'chopped tomatoes', note: '400g' }
  *   "Salt and pepper, to taste"          → { item: 'Salt and pepper', prepNote: 'to taste' }
  */
 export function parseIngredientLine(line: string): ParsedIngredient {
   const rawText = line.trim();
-  let rest = rawText.replace(BULLET, '').replace(/\s+/g, ' ').trim();
+  let rest = rawText
+    .replace(BULLET, '')
+    .replace(LIST_NUMBER, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   const notes: string[] = [];
   const prep: string[] = [];
 
@@ -44,53 +41,61 @@ export function parseIngredientLine(line: string): ParsedIngredient {
       .replace(/^,\s*|\s*,$/g, '');
   }
 
-  // Quantity: numbers anywhere at the start; word quantities ("a", "two") only when followed by a unit.
+  let qtyMin: number | undefined;
+  let qtyMax: number | undefined;
+  let unit: string | undefined;
+
+  // Word quantities ("a", "two") only count when a unit follows: "a pinch of salt", not "a few leaves".
   let qty = parseLeadingQuantity(rest);
   if (!qty) {
     const word = parseLeadingQuantity(rest, { allowWords: true });
     if (word && matchUnitPrefix(rest.slice(word.length))) qty = word;
   }
-  let qtyMin: number | undefined;
-  let qtyMax: number | undefined;
+
   if (qty) {
     qtyMin = qty.min;
     qtyMax = qty.max;
     rest = rest.slice(qty.length);
-  }
 
-  // "1 (14 oz) can …" — a parenthetical between the quantity and the unit is a size note.
-  if (qty) {
-    const paren = /^\(([^)]*)\)\s*/.exec(rest);
+    // Pack size between the count and the container: "1 (14 oz) can", "2 x 400g tins".
+    const paren = /^\(([^()]*)\)\s*/.exec(rest);
+    const packSize = paren ? undefined : measureAfter(rest, MULTIPLIER);
     if (paren) {
       notes.push((paren[1] ?? '').trim());
       rest = rest.slice(paren[0].length);
+    } else if (packSize) {
+      notes.push(packSize.text);
+      rest = rest.slice(packSize.length);
     }
-  }
 
-  // "1 small bunch parsley", "1 heaped tbsp flour" — a size word before a unit is a note.
-  if (qty) {
+    // "1 small bunch parsley", "1 heaped tbsp flour": a size word before a unit is a note.
     const size = SIZE_BEFORE_UNIT.exec(rest);
     if (size && matchUnitPrefix(rest.slice(size[0].length))) {
       notes.push((size[1] ?? '').toLowerCase());
       rest = rest.slice(size[0].length);
     }
-  }
 
-  let unit: string | undefined;
-  if (qty) {
-    // "2 x 400g" style multipliers are left alone; "2 large eggs" has no unit.
     const u = matchUnitPrefix(rest);
     if (u) {
       unit = u.unit.code;
       rest = rest.slice(u.length).trimStart();
+
+      // "1 lb 2 oz beef" → 18 oz (the original wording stays in rawText)
+      const second = qtyMax === undefined ? measureAt(rest) : undefined;
+      const combined = second && convert(qtyMin, unit, second.unit);
+      if (second && combined !== undefined && second.unit !== unit) {
+        qtyMin = combined + second.value;
+        unit = second.unit;
+        rest = rest.slice(second.length);
+      }
     }
   } else {
     // "pinch of salt", "handful of basil" without a quantity
     const u = matchUnitPrefix(rest);
     if (
       u &&
-      /\bof\b/i.test(rest.slice(0, u.length)) &&
-      u.unit.dimension === 'count'
+      u.unit.dimension === 'count' &&
+      /\bof\b/i.test(rest.slice(0, u.length))
     ) {
       unit = u.unit.code;
       qtyMin = 1;
@@ -98,12 +103,17 @@ export function parseIngredientLine(line: string): ParsedIngredient {
     }
   }
 
-  // Alternative measure right after the unit: "2 cups (250 g) flour", "200g / 7oz flour"
-  const alt =
-    /^(?:\(([^)]*)\)|\/\s*([\d.,½¼¾⅓⅔]+\s*[a-z. ]{1,8}?)(?=\s))\s*/i.exec(rest);
-  if (alt && (unit || qty)) {
-    notes.push((alt[1] ?? alt[2] ?? '').trim());
-    rest = rest.slice(alt[0].length);
+  // Alternative measure after the unit: "2 cups (250 g) flour", "100ml/3½fl oz milk"
+  if (qty) {
+    const paren = /^\(([^()]*)\)\s*/.exec(rest);
+    const alt = paren ? undefined : measureAfter(rest, /^\/\s*/);
+    if (paren) {
+      notes.push((paren[1] ?? '').trim());
+      rest = rest.slice(paren[0].length);
+    } else if (alt) {
+      notes.push(alt.text);
+      rest = rest.slice(alt.length);
+    }
   }
   rest = rest.replace(/^of\s+/i, '');
 
@@ -114,20 +124,22 @@ export function parseIngredientLine(line: string): ParsedIngredient {
   }
 
   // Trailing parenthetical: "flour (plain)" → note
-  const trailingParen = /\s*\(([^)]*)\)\s*$/.exec(rest);
+  const trailingParen = /\s*\(([^()]*)\)\s*$/.exec(rest);
   if (trailingParen && trailingParen.index > 0) {
     notes.push((trailingParen[1] ?? '').trim());
     rest = rest.slice(0, trailingParen.index);
   }
 
   // First comma separates item from preparation: "onion, finely diced"
-  const comma = splitOutsideParens(rest);
-  let item = comma[0].trim();
-  if (comma[1]) prep.unshift(comma[1].trim());
+  const [head, tail] = splitOutsideParens(rest);
+  const item = head
+    .trim()
+    .replace(/[,;:]$/, '')
+    .trim();
+  if (tail) prep.unshift(tail.trim());
 
-  item = item.replace(/[,;:]$/, '').trim();
   if (!item) {
-    // Nothing left (e.g. line was only a quantity): fall back to the raw text rather than lose it.
+    // Nothing left (e.g. the line was only a quantity): keep the raw text as the item rather than lose it.
     return { item: rawText, optional, rawText };
   }
 
@@ -143,6 +155,39 @@ export function parseIngredientLine(line: string): ParsedIngredient {
     optional,
     rawText,
   };
+}
+
+interface Measure {
+  value: number;
+  unit: string;
+  /** Matched text, trimmed. */
+  text: string;
+  /** Characters consumed, including trailing whitespace. */
+  length: number;
+}
+
+/** A non-count measure ("400g", "3½ fl oz") at the start of `text`. */
+function measureAt(text: string): Measure | undefined {
+  const q = parseLeadingQuantity(text);
+  if (!q || q.max !== undefined) return undefined;
+  const u = matchUnitPrefix(text.slice(q.length));
+  if (!u || u.unit.dimension === 'count') return undefined;
+  const end = q.length + u.length;
+  const length = end + (/^\s*/.exec(text.slice(end))?.[0].length ?? 0);
+  return {
+    value: q.min,
+    unit: u.unit.code,
+    text: text.slice(0, end).trim(),
+    length,
+  };
+}
+
+/** A measure introduced by `prefix` ("x 400g", "/ 7oz"); `length` includes the prefix. */
+function measureAfter(text: string, prefix: RegExp): Measure | undefined {
+  const p = prefix.exec(text);
+  if (!p) return undefined;
+  const m = measureAt(text.slice(p[0].length));
+  return m && { ...m, length: p[0].length + m.length };
 }
 
 function splitOutsideParens(text: string): [string, string | undefined] {
@@ -170,7 +215,6 @@ export function looksLikeIngredient(line: string): boolean {
   const text = line.replace(BULLET, '').trim();
   if (!text || text.length > 120) return false;
   if (parseLeadingQuantity(text)) return true;
-  const words = text.split(/\s+/).length;
   // Short, no sentence punctuation: "Salt and pepper", "Fresh coriander, to serve"
-  return words <= 6 && !/[.!?]$/.test(text) && !/:$/.test(text);
+  return text.split(/\s+/).length <= 6 && !/[.!?:]$/.test(text);
 }
