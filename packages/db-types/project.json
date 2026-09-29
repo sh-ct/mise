@@ -1,0 +1,17 @@
+{
+  "name": "db-types",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/db-types/src",
+  "tags": ["type:db-types"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "options": {
+        "command": "tsc -p tsconfig.json",
+        "cwd": "packages/db-types"
+      }
+    }
+  }
+}

@@ -42,3 +42,23 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm nx affected -t e2e
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec supabase db start
+      - name: pgTAP tests (RLS, save_recipe)
+        run: pnpm exec supabase test db
+      - name: Generated DB types are up to date
+        run: |
+          pnpm db:types
+          git diff --exit-code packages/db-types

@@ -59,7 +59,12 @@ confirm the Deno import setup.
 
 ## Data model
 
-All user-owned rows carry `owner_id uuid references auth.users` and RLS `owner_id = auth.uid()`.
+All user-owned rows carry `owner_id` and RLS `owner_id = auth.uid()`. Child tables (sections, ingredients,
+steps, links, tags, collection entries) repeat `owner_id` and reference their parent by `(id, owner_id)`, so a
+child can never belong to a different user than its parent and every policy is a plain column comparison.
+Ingredients and steps also reference their section by `(section_id, recipe_id, kind)`, and step↔ingredient
+links by `(…, recipe_id)`, so cross-recipe or wrong-kind references are rejected by the database.
+Schema: `supabase/migrations`; tests: `supabase/tests/database` (pgTAP).
 
 ```
 recipe

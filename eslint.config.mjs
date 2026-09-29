@@ -16,7 +16,11 @@ export default [
           enforceBuildableLibDependency: true,
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
-            { sourceTag: 'type:app', onlyDependOnLibsWithTags: ['type:core'] },
+            {
+              sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: ['type:core', 'type:db-types'],
+            },
+            { sourceTag: 'type:db-types', onlyDependOnLibsWithTags: [] },
             { sourceTag: 'type:core', onlyDependOnLibsWithTags: ['type:core'] },
           ],
         },

@@ -9,7 +9,11 @@
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",
     "build": "nx run-many -t build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local > packages/db-types/src/database.types.ts && prettier --write packages/db-types/src/database.types.ts"
   },
   "private": true,
   "dependencies": {
@@ -54,6 +58,7 @@
     "jsdom": "^27.1.0",
     "nx": "23.2.0",
     "prettier": "^3.8.1",
+    "supabase": "^2.118.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.58.0",
