@@ -1,0 +1,62 @@
+/* Order Ticket: a kitchen order pad. Red top rule, condensed uppercase headings, straight red timers. */
+:root[data-theme='order-ticket'] {
+  --ds-canvas: #f7faf6;
+  --ds-surface: #ffffff;
+  --ds-ink: #1c2321;
+  --ds-ink-muted: #56645c;
+  --ds-line: #d3ded5;
+  --ds-primary: #1c2321;
+  --ds-on-primary: #f7faf6;
+  --ds-accent: #c8322b;
+  --ds-on-accent: #ffffff;
+  --ds-chip: #fbe7e5;
+  --ds-on-chip: #9c231d;
+  --ds-gloss: #c8322b;
+  --ds-progress: #1c2321;
+  --ds-tray-a: #ffffff;
+  --ds-tray-b: #eef3ef;
+  --ds-on-tray-b: #1c2321;
+  --ds-danger: #b3261e;
+  --ds-focus: #c8322b;
+  --ds-rule: #c8322b;
+
+  --ds-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --ds-font-body: 'Barlow', system-ui, sans-serif;
+  --ds-font-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --ds-font-step: 'Barlow', system-ui, sans-serif;
+  --ds-display-weight: 700;
+  --ds-heading-transform: uppercase;
+  --ds-heading-tracking: 0.03em;
+  --ds-step-size: 1.3125rem;
+  --ds-step-weight: 500;
+
+  --ds-radius-chip: 4px;
+  --ds-radius-control: 6px;
+  --ds-radius-card: 4px;
+  --ds-radius-sheet: 10px;
+  --ds-radius-thumb: 3px;
+  --ds-rule-width: 5px;
+}
+
+:root[data-theme='order-ticket'][data-mode='dark'] {
+  --ds-canvas: #151a18;
+  --ds-surface: #1d2421;
+  --ds-ink: #eef3ef;
+  --ds-ink-muted: #9fb0a6;
+  --ds-line: #2c3632;
+  --ds-primary: #eef3ef;
+  --ds-on-primary: #151a18;
+  --ds-accent: #ff5a4f;
+  --ds-on-accent: #1a0504;
+  --ds-chip: #3a201e;
+  --ds-on-chip: #ffb3ad;
+  --ds-gloss: #ff5a4f;
+  --ds-progress: #eef3ef;
+  --ds-tray-a: #1d2421;
+  --ds-tray-b: #252e2a;
+  --ds-on-tray-b: #eef3ef;
+  --ds-danger: #ff8a80;
+  --ds-on-danger: #2a0605;
+  --ds-focus: #ff5a4f;
+  --ds-rule: #ff5a4f;
+}

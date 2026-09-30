@@ -1,0 +1,164 @@
+/*
+ * Design token contract (docs/adr/0007-design-tokens.md).
+ *
+ *   themes/*.css  → set raw --ds-* values per theme and mode (the only place with literal values)
+ *   this file     → maps --ds-* into Tailwind's theme, removes Tailwind's defaults, adds token utilities
+ *   components    → use only the utilities below; no literal colours, fonts, radii or shadows
+ *
+ * Every theme must define every --ds-* token listed in themes/README.md, in both modes.
+ */
+
+/* Tailwind's default palette, fonts, radii and shadows are removed so only tokens can be used. */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+}
+
+@theme inline {
+  /* colour */
+  --color-canvas: var(--ds-canvas);
+  --color-surface: var(--ds-surface);
+  --color-ink: var(--ds-ink);
+  --color-ink-muted: var(--ds-ink-muted);
+  --color-line: var(--ds-line);
+  --color-primary: var(--ds-primary);
+  --color-on-primary: var(--ds-on-primary);
+  --color-accent: var(--ds-accent);
+  --color-on-accent: var(--ds-on-accent);
+  --color-chip: var(--ds-chip);
+  --color-on-chip: var(--ds-on-chip);
+  --color-gloss: var(--ds-gloss);
+  --color-progress: var(--ds-progress);
+  --color-tray-a: var(--ds-tray-a);
+  --color-on-tray-a: var(--ds-on-tray-a);
+  --color-tray-b: var(--ds-tray-b);
+  --color-on-tray-b: var(--ds-on-tray-b);
+  --color-danger: var(--ds-danger);
+  --color-on-danger: var(--ds-on-danger);
+  --color-focus: var(--ds-focus);
+  --color-rule: var(--ds-rule);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* type */
+  --font-display: var(--ds-font-display);
+  --font-body: var(--ds-font-body);
+  --font-num: var(--ds-font-num);
+  --font-step: var(--ds-font-step);
+
+  /* shape */
+  --radius-chip: var(--ds-radius-chip);
+  --radius-control: var(--ds-radius-control);
+  --radius-card: var(--ds-radius-card);
+  --radius-sheet: var(--ds-radius-sheet);
+  --radius-thumb: var(--ds-radius-thumb);
+  --radius-full: 9999px;
+
+  /* depth */
+  --shadow-card: var(--ds-shadow-card);
+  --shadow-sheet: var(--ds-shadow-sheet);
+}
+
+/*
+ * spartan/ui (shadcn-style) components read these names. They alias our tokens so generated components
+ * follow the active theme without edits.
+ */
+:root {
+  --background: var(--ds-canvas);
+  --foreground: var(--ds-ink);
+  --card: var(--ds-surface);
+  --card-foreground: var(--ds-ink);
+  --popover: var(--ds-surface);
+  --popover-foreground: var(--ds-ink);
+  --primary: var(--ds-primary);
+  --primary-foreground: var(--ds-on-primary);
+  --secondary: var(--ds-chip);
+  --secondary-foreground: var(--ds-on-chip);
+  --muted: var(--ds-chip);
+  --muted-foreground: var(--ds-ink-muted);
+  --accent: var(--ds-chip);
+  --accent-foreground: var(--ds-on-chip);
+  --destructive: var(--ds-danger);
+  --border: var(--ds-line);
+  --input: var(--ds-line);
+  --ring: var(--ds-focus);
+  --radius: var(--ds-radius-control);
+}
+
+/* ---- token utilities: theme character that isn't a single colour, font or radius ---- */
+
+/* Headings: display face, weight, case and tracking all come from the theme. */
+@utility heading {
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-display-weight);
+  text-transform: var(--ds-heading-transform);
+  letter-spacing: var(--ds-heading-tracking);
+}
+
+/* The step text in cook mode: the hero of the screen. `step-text-big` is the big-type setting. */
+@utility step-text {
+  font-family: var(--ds-font-step);
+  font-variation-settings: var(--ds-font-step-settings);
+  font-size: var(--ds-step-size);
+  font-weight: var(--ds-step-weight);
+  line-height: 1.38;
+}
+@utility step-text-big {
+  font-family: var(--ds-font-step);
+  font-variation-settings: var(--ds-font-step-settings);
+  font-size: calc(var(--ds-step-size) * 1.4);
+  font-weight: var(--ds-step-weight);
+  line-height: 1.28;
+}
+
+/* Numbers that should line up (quantities, timers). */
+@utility nums {
+  font-family: var(--ds-font-num);
+  font-variation-settings: var(--ds-font-num-settings);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tags: some themes tilt them like stickers or give them an outline. */
+@utility tag {
+  border: var(--ds-tag-border-width) solid var(--ds-tag-border);
+  background: var(--ds-tag-bg);
+  color: var(--ds-tag-ink);
+  border-radius: var(--ds-radius-chip);
+  rotate: var(--ds-tag-rotate);
+}
+@utility tag-alt {
+  border: var(--ds-tag-border-width) solid var(--ds-tag-alt-bg);
+  background: var(--ds-tag-alt-bg);
+  color: var(--ds-tag-alt-ink);
+  border-radius: var(--ds-radius-chip);
+  rotate: calc(var(--ds-tag-rotate) * -1);
+}
+
+/* Cards and sheets: border width and the optional coloured top rule are theme decisions. */
+@utility card-edge {
+  border: var(--ds-card-border-width) solid var(--ds-card-border);
+  border-top: var(--ds-rule-width) solid var(--ds-rule);
+}
+
+@layer base {
+  html {
+    background: var(--ds-canvas);
+    color: var(--ds-ink);
+    font-family: var(--ds-font-body);
+    color-scheme: var(--ds-color-scheme);
+  }
+  :focus-visible {
+    outline: 3px solid var(--ds-focus);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

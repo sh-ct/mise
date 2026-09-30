@@ -1,0 +1,56 @@
+/* Bento: soft compartments on rice white; deep warm trays on charcoal in the dark. */
+:root[data-theme='bento'] {
+  --ds-canvas: #fbfbf8;
+  --ds-surface: #f2f0ea;
+  --ds-ink: #1e2426;
+  --ds-ink-muted: #5c6467;
+  --ds-line: #e4e1d8;
+  --ds-primary: #1e2426;
+  --ds-on-primary: #fbfbf8;
+  --ds-accent: #c2334d;
+  --ds-on-accent: #ffffff;
+  --ds-chip: #cfe6c2;
+  --ds-on-chip: #264a1c;
+  --ds-gloss: #c2334d;
+  --ds-progress: #e98b6e;
+  --ds-tray-a: #fbe0d4;
+  --ds-tray-b: #f7eab8;
+  --ds-on-tray-b: #6b5310;
+  --ds-danger: #b3261e;
+  --ds-focus: #c2334d;
+
+  --ds-font-display: 'M PLUS Rounded 1c', system-ui, sans-serif;
+  --ds-font-body: 'Nunito Sans', system-ui, sans-serif;
+  --ds-font-num: 'M PLUS Rounded 1c', system-ui, sans-serif;
+  --ds-font-step: 'Nunito Sans', system-ui, sans-serif;
+  --ds-display-weight: 800;
+  --ds-step-size: 1.3125rem;
+
+  --ds-radius-control: 16px;
+  --ds-radius-card: 18px;
+  --ds-radius-sheet: 24px;
+  --ds-radius-thumb: 14px;
+  --ds-card-border-width: 0px;
+}
+
+:root[data-theme='bento'][data-mode='dark'] {
+  --ds-canvas: #16191b;
+  --ds-surface: #212628;
+  --ds-ink: #f2efe8;
+  --ds-ink-muted: #a3aaad;
+  --ds-line: #2e3437;
+  --ds-primary: #f2efe8;
+  --ds-on-primary: #16191b;
+  --ds-accent: #ff7a93;
+  --ds-on-accent: #2a0710;
+  --ds-chip: #253823;
+  --ds-on-chip: #cfe6c2;
+  --ds-gloss: #ff7a93;
+  --ds-progress: #f0a184;
+  --ds-tray-a: #3b2721;
+  --ds-tray-b: #37301a;
+  --ds-on-tray-b: #f7e3a1;
+  --ds-danger: #ff8a80;
+  --ds-on-danger: #2a0605;
+  --ds-focus: #ff7a93;
+}

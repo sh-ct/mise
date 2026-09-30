@@ -1,0 +1,40 @@
+/* Defaults for tokens most themes share. Themes override any of these. */
+:root {
+  --ds-color-scheme: light;
+  --ds-heading-transform: none;
+  --ds-heading-tracking: normal;
+  --ds-step-weight: 400;
+  --ds-font-step-settings: normal;
+  --ds-font-num-settings: normal;
+
+  --ds-radius-chip: 999px;
+  --ds-radius-control: 12px;
+  --ds-radius-card: 12px;
+  --ds-radius-sheet: 22px;
+  --ds-radius-thumb: 10px;
+  --ds-card-border-width: 1px;
+  --ds-card-border: var(--ds-line);
+  --ds-rule-width: 0px;
+  --ds-rule: transparent;
+
+  --ds-tag-bg: var(--ds-chip);
+  --ds-tag-ink: var(--ds-on-chip);
+  --ds-tag-border: transparent;
+  --ds-tag-border-width: 0px;
+  --ds-tag-rotate: 0deg;
+  --ds-tag-alt-bg: var(--ds-tray-b);
+  --ds-tag-alt-ink: var(--ds-on-tray-b);
+
+  --ds-on-tray-a: var(--ds-ink);
+  --ds-on-danger: #ffffff;
+
+  --ds-shadow-card: 0 8px 22px rgb(0 0 0 / 0.1);
+  --ds-shadow-sheet: 0 -12px 30px rgb(0 0 0 / 0.28);
+}
+
+/* More specific than a theme's light block, so dark shadows win unless the theme's dark block overrides them. */
+:root[data-theme][data-mode='dark'] {
+  --ds-color-scheme: dark;
+  --ds-shadow-card: 0 8px 22px rgb(0 0 0 / 0.4);
+  --ds-shadow-sheet: 0 -12px 30px rgb(0 0 0 / 0.5);
+}

@@ -17,6 +17,10 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 - Every import path produces a `RecipeDraft` that opens in the editor — never save parsed data directly.
 - Ingredients always keep `raw_text`.
 - Voice and AI are progressive enhancements; tap navigation must always work.
+- UI uses design tokens only (ADR 0007): Tailwind token utilities (`bg-canvas`, `text-ink`, `rounded-card`, `heading`, …),
+  never literal colours, fonts, radii or shadows. Literal values live only in `apps/web/src/styles/themes`. New visual
+  needs get a new token defined in every theme. `pnpm nx run web:tokens` enforces this.
+- Mobile first, but every screen must work on tablet and desktop; e2e runs on desktop, Android and iPhone viewports.
 
 ## Commands
 

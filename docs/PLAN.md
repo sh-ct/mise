@@ -47,6 +47,20 @@ library, then cook from it with a focused, hands-free-friendly, step-at-a-time k
 - Glossary (add-on): terms from a curated global glossary auto-underlined on first mention per step — tap for an explanation.
 - **Voice (no AI):** read steps aloud (SpeechSynthesis) and simple commands — "next", "back", "repeat", "ingredients" (SpeechRecognition, where supported). Tap always works as fallback.
 - **Voice (AI, later):** conversational assistant — ask questions, get advice, say "done" to advance.
+- **Step text is the hero.** The glossary definition appears only when the word is tapped; the next step is a
+  one-line footnote.
+- **Big type** setting: step text ~40% larger, next-step footnote hidden.
+- **Stand mode** (landscape phone, tablet, desktop): step on the left, its ingredients (and photo) on the right.
+- **Step photos** (optional per step): on phones, a round camera button between Back and Next — only on steps
+  with a photo — opens the photo in a sheet over the lower half. Stand mode shows it beside the step.
+
+### Look and feel
+
+- Design tokens for everything; components use only tokens (ADR 0007). Themes are light/dark pairs.
+- Starting theme: **Market Stall** (light and dark). Bento, Night Kitchen, Enamel and Order Ticket are kept as
+  alternative themes (`docs/design/style-directions.html`) and selectable under Settings → Style.
+- Appearance: always light, always dark, auto by time of day (dark 7pm–7am), or auto by device theme (default).
+- Mobile first; tablets and desktop get a sidebar and wider layouts. Library keeps recipe photos.
 
 ### Later
 
@@ -139,3 +153,9 @@ Forms → Signal Forms if stable, else Reactive · State → NgRx SignalStore ·
 Testing → Vitest + Playwright + pgTAP · Hosting → Cloudflare Pages · Data access → reads via client, writes via RPC ·
 Images → browser-resized WebP · Envs → local + prod · Workflow → public repo, PRs, conventional commits ·
 Step markup → none; timers & glossary detected at render time.
+
+## Resolved (2026-09-30)
+
+Theme → Market Stall light/dark first, all five directions kept · Tokens → every visual value is a token; Tailwind
+wired at theme level; enforced by `nx run web:tokens` · Appearance → light / dark / time / device · Cook mode →
+big type, stand mode, step photos behind a nav-row camera button · Library photos → kept.

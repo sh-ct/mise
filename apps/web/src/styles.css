@@ -1,1 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles: Tailwind, the design token contract, and every theme (docs/adr/0007-design-tokens.md). */
+@import 'tailwindcss' source('./');
+@import './styles/themes/_base.css';
+@import './styles/themes/market-stall.css';
+@import './styles/themes/bento.css';
+@import './styles/themes/night-kitchen.css';
+@import './styles/themes/enamel.css';
+@import './styles/themes/order-ticket.css';
+@import './styles/tokens.css';

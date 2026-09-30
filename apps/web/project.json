@@ -76,6 +76,17 @@
         "staticFilePath": "dist/apps/web/browser",
         "spa": true
       }
+    },
+    "tokens": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/src/app/**/*",
+        "{workspaceRoot}/tools/check-tokens.mjs"
+      ],
+      "options": {
+        "command": "node tools/check-tokens.mjs apps/web/src/app"
+      }
     }
   }
 }
