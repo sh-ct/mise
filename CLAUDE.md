@@ -3,6 +3,7 @@
 Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-step. Working name.
 
 - Plan & roadmap: `docs/PLAN.md` · Architecture & data model: `docs/ARCHITECTURE.md` · Decisions: `docs/adr/`
+- Hosted setup (Supabase project, Cloudflare Pages, GitHub): `docs/SETUP.md`
 - Stack: Nx + pnpm, Angular (signals, standalone, zoneless, client-only SPA), Tailwind + spartan/ui, NgRx SignalStore,
   Supabase (Postgres/Auth/Storage/Edge Functions), Zod. Tests: Vitest, Playwright, pgTAP. Hosting: Cloudflare Pages.
 
