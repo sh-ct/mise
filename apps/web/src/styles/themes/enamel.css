@@ -1,0 +1,56 @@
+/* Enamel: blue-rimmed enamelware on a highly legible typeface. Dark is deep navy with a brighter cobalt. */
+[data-theme='enamel'] {
+  --ds-canvas: #f6f8fb;
+  --ds-surface: #ffffff;
+  --ds-ink: #13233f;
+  --ds-ink-muted: #5b6b86;
+  --ds-line: #d5dcea;
+  --ds-primary: #1f4fd8;
+  --ds-on-primary: #ffffff;
+  --ds-accent: #1f4fd8;
+  --ds-on-accent: #ffffff;
+  --ds-chip: #e3eaff;
+  --ds-on-chip: #1a3a9c;
+  --ds-gloss: #1f4fd8;
+  --ds-progress: #1f4fd8;
+  --ds-tray-a: #ffffff;
+  --ds-tray-b: #e3eaff;
+  --ds-on-tray-b: #1a3a9c;
+  --ds-danger: #b3261e;
+  --ds-focus: #1f4fd8;
+
+  --ds-font-display:
+    'Bricolage Grotesque Variable', 'Atkinson Hyperlegible', system-ui,
+    sans-serif;
+  --ds-font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --ds-font-num: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --ds-font-step: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --ds-display-weight: 800;
+  --ds-step-size: 1.3125rem;
+
+  --ds-card-border-width: 2px;
+  --ds-card-border: #13233f;
+}
+
+[data-theme='enamel'][data-mode='dark'] {
+  --ds-canvas: #0e1726;
+  --ds-surface: #16223a;
+  --ds-ink: #e8eefc;
+  --ds-ink-muted: #9aa9c6;
+  --ds-line: #26365a;
+  --ds-primary: #7a9cff;
+  --ds-on-primary: #0b1330;
+  --ds-accent: #7a9cff;
+  --ds-on-accent: #0b1330;
+  --ds-chip: #1d2c52;
+  --ds-on-chip: #c9d6ff;
+  --ds-gloss: #7a9cff;
+  --ds-progress: #7a9cff;
+  --ds-tray-a: #16223a;
+  --ds-tray-b: #1d2c52;
+  --ds-on-tray-b: #c9d6ff;
+  --ds-danger: #ff8a80;
+  --ds-on-danger: #2a0605;
+  --ds-focus: #7a9cff;
+  --ds-card-border: #34497d;
+}

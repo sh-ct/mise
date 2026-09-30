@@ -17,11 +17,15 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 - Every import path produces a `RecipeDraft` that opens in the editor — never save parsed data directly.
 - Ingredients always keep `raw_text`.
 - Voice and AI are progressive enhancements; tap navigation must always work.
+- UI uses design tokens only (ADR 0007): Tailwind token utilities (`bg-canvas`, `text-ink`, `rounded-card`, `heading`, …),
+  never literal colours, fonts, radii or shadows. Literal values live only in `apps/web/src/styles/themes`. New visual
+  needs get a new token defined in every theme. `pnpm tokens` enforces this.
+- Mobile first, but every screen must work on tablet and desktop; e2e runs on desktop, Android and iPhone viewports.
 
 ## Commands
 
 - `pnpm nx serve web` — dev server · `pnpm test` / `pnpm lint` / `pnpm typecheck` / `pnpm build` — all projects
-- `pnpm nx test core` — core unit tests · `pnpm nx e2e web-e2e` — Playwright
+- `pnpm nx test core` — core unit tests · `pnpm nx e2e web-e2e` — Playwright (desktop, Android, iPhone, iPad, landscape phone) · `pnpm tokens` — design token check
 - `pnpm format` before committing.
 - pnpm blocks dependency install scripts by default: approve new ones with `pnpm approve-builds <pkg>` (recorded in `pnpm-workspace.yaml`).
 - Nx plugins/generators: always pass `--no-interactive`; if Nx hangs on Windows, run with `NX_DAEMON=false`.

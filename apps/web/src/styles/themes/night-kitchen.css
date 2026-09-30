@@ -1,0 +1,53 @@
+/* Night Kitchen: largest step text and saffron timers. Light is sea-glass and teal; dark is the original. */
+[data-theme='night-kitchen'] {
+  --ds-canvas: #f2f6f5;
+  --ds-surface: #ffffff;
+  --ds-ink: #10262b;
+  --ds-ink-muted: #56706f;
+  --ds-line: #d2dfdd;
+  --ds-primary: #10262b;
+  --ds-on-primary: #f2f6f5;
+  --ds-accent: #f2a93b;
+  --ds-on-accent: #1b1204;
+  --ds-chip: #dcece8;
+  --ds-on-chip: #13443c;
+  --ds-gloss: #13917e;
+  --ds-progress: #13917e;
+  --ds-tray-a: #ffffff;
+  --ds-tray-b: #dcece8;
+  --ds-on-tray-b: #13443c;
+  --ds-danger: #b3261e;
+  --ds-focus: #13917e;
+
+  --ds-font-display: 'Recursive Variable', system-ui, sans-serif;
+  --ds-font-body: 'Figtree Variable', system-ui, sans-serif;
+  --ds-font-num: 'Recursive Variable', ui-monospace, monospace;
+  --ds-font-step: 'Recursive Variable', system-ui, sans-serif;
+  --ds-font-step-settings: 'CASL' 0.6;
+  --ds-font-num-settings: 'MONO' 1;
+  --ds-display-weight: 700;
+  --ds-step-size: 1.5rem;
+  --ds-step-weight: 500;
+}
+
+[data-theme='night-kitchen'][data-mode='dark'] {
+  --ds-canvas: #0f1b1f;
+  --ds-surface: #16262b;
+  --ds-ink: #eaf2ef;
+  --ds-ink-muted: #93a8a6;
+  --ds-line: #264046;
+  --ds-primary: #f2a93b;
+  --ds-on-primary: #1b1204;
+  --ds-accent: #f2a93b;
+  --ds-on-accent: #1b1204;
+  --ds-chip: #233b40;
+  --ds-on-chip: #bfe3dc;
+  --ds-gloss: #6fd0bf;
+  --ds-progress: #f2a93b;
+  --ds-tray-a: #16262b;
+  --ds-tray-b: #233b40;
+  --ds-on-tray-b: #bfe3dc;
+  --ds-danger: #ff8a80;
+  --ds-on-danger: #2a0605;
+  --ds-focus: #6fd0bf;
+}

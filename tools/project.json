@@ -1,0 +1,15 @@
+{
+  "name": "tools",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "tools",
+  "tags": ["type:tools"],
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["default"],
+      "options": { "command": "vitest run", "cwd": "tools" }
+    }
+  }
+}

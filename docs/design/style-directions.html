@@ -1,0 +1,1769 @@
+<!-- Snapshot of the style-directions review page (published at https://claude.ai/artifact/DrnhBZerJUGwcDujXSyaxi). Open in a browser; it is a standalone page. Token values here were ported to apps/web/src/styles/themes. -->
+<title>Mise Style Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;600&family=Karla:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=Public+Sans:wght@400;600;700&family=Recursive:slnt,wght,CASL,MONO@-15..0,400..900,0..1,0..1&family=Rubik:wght@500;700;800&display=swap"
+/>
+<style>
+  /* Layout: a working prototype sheet. Sticky settings bar (appearance, big type, stand mode), then one band per direction rendering its light/dark skins per the settings, then names. */
+  :root {
+    --bg: #f1f2ef;
+    --surface: #ffffff;
+    --ink: #1b1e1b;
+    --muted: #5d635d;
+    --line: #d8dbd5;
+    --accent: #2d5b4b;
+    --taken: #b93c0c;
+    --weak: #8a5a00;
+    --font-ui: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #141715;
+      --surface: #1d211e;
+      --ink: #e8ebe6;
+      --muted: #a2aaa2;
+      --line: #333a35;
+      --accent: #8cc7b0;
+      --taken: #fb9b6b;
+      --weak: #e5c16b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --bg: #141715;
+    --surface: #1d211e;
+    --ink: #e8ebe6;
+    --muted: #a2aaa2;
+    --line: #333a35;
+    --accent: #8cc7b0;
+    --taken: #fb9b6b;
+    --weak: #e5c16b;
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 36px 64px;
+    display: grid;
+    gap: 24px;
+  }
+  header {
+    display: grid;
+    gap: 10px;
+    max-width: 74ch;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h2 {
+    font-size: 24px;
+    margin: 0;
+    text-wrap: balance;
+  }
+  p {
+    margin: 0;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* settings bar */
+  .settings {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    align-items: center;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.06);
+  }
+  .settings fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .settings legend {
+    float: left;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 6px;
+  }
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .seg input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .seg label {
+    font-size: 13px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .seg input:checked + label {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .seg input:focus-visible + label {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .check input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+  }
+  .status {
+    font-size: 13px;
+    color: var(--muted);
+    flex-basis: 100%;
+  }
+  .status b {
+    color: var(--ink);
+  }
+
+  .dir {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
+    gap: 24px;
+    scroll-margin-top: 120px;
+  }
+  .dir-info {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .dir-info p {
+    color: var(--muted);
+  }
+  .palette {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .palette div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .palette span.l {
+    width: 40px;
+  }
+  .sw {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .fonts {
+    font-size: 13px;
+    color: var(--muted);
+    display: grid;
+    gap: 2px;
+  }
+  .fonts span {
+    color: var(--ink);
+  }
+  .mocks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: flex-start;
+    min-width: 0;
+  }
+  figure {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  figcaption {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-left: 8px;
+  }
+
+  /* ---------- shared mockup structure (each skin sets the --p-* tokens) ---------- */
+  .phone {
+    width: 300px;
+    max-width: calc(100% - 14px);
+    border-radius: var(--p-radius-phone, 30px);
+    padding: 18px 16px 14px;
+    background: var(--p-bg);
+    color: var(--p-ink);
+    font-family: var(--p-body);
+    display: grid;
+    gap: 14px;
+    box-shadow:
+      0 0 0 7px var(--p-frame),
+      0 14px 30px rgb(0 0 0 / 0.18);
+    margin: 7px;
+  }
+  .phone .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--p-muted);
+  }
+  .phone .top b {
+    color: var(--p-ink);
+    font-family: var(--p-display);
+    font-weight: var(--p-display-weight, 700);
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .num {
+    font-family: var(--p-num);
+    font-variant-numeric: tabular-nums;
+  }
+  .progress {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--p-line);
+    overflow: hidden;
+  }
+  .progress i {
+    display: block;
+    height: 100%;
+    width: 60%;
+    background: var(--p-progress, var(--p-accent));
+  }
+  .body,
+  .main,
+  .side {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+  }
+  .run {
+    justify-self: start;
+    font-family: var(--p-num);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 10px;
+    border-radius: var(--p-radius-chip, 999px);
+    background: var(--p-chip);
+    color: var(--p-chip-ink);
+  }
+  .step {
+    font-family: var(--p-step, var(--p-body));
+    font-size: var(--p-step-size, 21px);
+    line-height: 1.38;
+    font-weight: var(--p-step-weight, 400);
+  }
+  .gloss {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline dotted var(--p-gloss, var(--p-accent)) 2px;
+    text-underline-offset: 4px;
+  }
+  .timer {
+    font: inherit;
+    font-family: var(--p-num);
+    font-size: 0.78em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px 2px 7px;
+    border-radius: var(--p-radius-chip, 999px);
+    border: 0;
+    background: var(--p-accent);
+    color: var(--p-accent-ink);
+    vertical-align: 2px;
+    cursor: pointer;
+  }
+  .timer svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+  }
+  .timer[aria-pressed='true'] {
+    background: var(--p-ink);
+    color: var(--p-bg);
+  }
+  .tip {
+    font-size: 13px;
+    line-height: 1.45;
+    padding: 9px 11px;
+    border-radius: 10px;
+    background: var(--p-surface);
+    border: 1px solid var(--p-line);
+    margin-top: -4px;
+  }
+  .tip b {
+    font-family: var(--p-display);
+  }
+  .label {
+    margin: 0 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--p-muted);
+    font-weight: 600;
+  }
+  .uses ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 5px;
+    font-size: 15px;
+  }
+  .uses li {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .uses .num {
+    font-weight: 700;
+    min-width: 1.4em;
+  }
+  .next {
+    padding-top: 12px;
+    border-top: 1px solid var(--p-line);
+    display: grid;
+    gap: 2px;
+    color: var(--p-muted);
+    font-size: 13.5px;
+  }
+  .next p {
+    color: var(--p-ink);
+    opacity: 0.82;
+  }
+  .nav {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 8px;
+  }
+  .nav button {
+    font: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 11px;
+    border-radius: var(--p-radius-btn, 12px);
+    border: 1px solid var(--p-line);
+    background: var(--p-surface);
+    color: var(--p-ink);
+    cursor: pointer;
+  }
+  .nav .primary {
+    background: var(--p-primary, var(--p-ink));
+    color: var(--p-primary-ink, var(--p-bg));
+    border-color: var(--p-primary, var(--p-ink));
+  }
+
+  /* big type: step text is the hero; the next-step footnote steps aside */
+  .big .step {
+    font-size: calc(var(--p-step-size, 21px) * 1.4);
+    line-height: 1.28;
+  }
+  .big .next {
+    display: none;
+  }
+  .big .uses ul {
+    font-size: 17px;
+  }
+
+  /* stand mode: tablet on a stand, landscape; step left, ingredients right */
+  .stand .phone {
+    width: 600px;
+    border-radius: 22px;
+  }
+  .stand .body {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+  .stand .side {
+    border-left: 1px solid var(--p-line);
+    padding-left: 18px;
+  }
+  .stand .next {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .stand .nav {
+    grid-template-columns: 1fr 3fr;
+  }
+
+  .library {
+    width: 300px;
+    max-width: 100%;
+    border-radius: var(--p-radius-lib, 16px);
+    padding: 14px;
+    background: var(--p-bg);
+    color: var(--p-ink);
+    font-family: var(--p-body);
+    display: grid;
+    gap: 10px;
+    box-shadow: 0 8px 22px rgb(0 0 0 / 0.12);
+  }
+  .lib-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .lib-head b {
+    font-family: var(--p-display);
+    font-weight: var(--p-display-weight, 700);
+    font-size: 20px;
+  }
+  .lib-head span {
+    font-size: 12px;
+    color: var(--p-muted);
+  }
+  .search {
+    font-size: 13px;
+    color: var(--p-muted);
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: var(--p-surface);
+    border: 1px solid var(--p-line);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    border-radius: var(--p-radius-row, 12px);
+    background: var(--p-surface);
+    border: 1px solid var(--p-line);
+  }
+  .thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--p-radius-thumb, 10px);
+  }
+  /* step photos: a round camera button in the nav row opens a sheet on phones; stand mode shows the photo beside the step */
+  .phone {
+    position: relative;
+    overflow: hidden;
+  }
+  .nav:has(.cam) {
+    grid-template-columns: 1fr auto 2fr;
+    align-items: center;
+  }
+  .nav .cam {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+  .cam svg,
+  .sheet-close svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nav .cam[aria-expanded='true'] {
+    background: var(--p-ink);
+    color: var(--p-bg);
+    border-color: var(--p-ink);
+  }
+  .sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    background: var(--p-bg);
+    color: var(--p-ink);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -12px 30px rgb(0 0 0 / 0.28);
+    padding: 8px 16px 16px;
+    display: grid;
+    gap: 10px;
+    transform: translateY(105%);
+    visibility: hidden;
+    transition:
+      transform 0.25s ease,
+      visibility 0.25s;
+  }
+  .sheet.open {
+    transform: none;
+    visibility: visible;
+  }
+  .sheet-handle {
+    justify-self: center;
+    width: 44px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--p-line);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .sheet-head b {
+    font-family: var(--p-display);
+    font-weight: var(--p-display-weight, 700);
+    font-size: 15px;
+  }
+  .sheet-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--p-line);
+    background: var(--p-surface);
+    color: var(--p-ink);
+    display: grid;
+    place-items: center;
+    padding: 0;
+    cursor: pointer;
+  }
+  .sheet-close svg {
+    width: 16px;
+    height: 16px;
+  }
+  .sheet-photo,
+  .side-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: calc(var(--p-radius-btn, 12px) + 2px);
+  }
+  .sheet small {
+    color: var(--p-muted);
+    font-size: 12px;
+  }
+  .side-photo {
+    display: none;
+  }
+  .stand .side-photo {
+    display: block;
+  }
+  .stand .nav .cam,
+  .stand .sheet {
+    display: none;
+  }
+  .stand .nav:has(.cam) {
+    grid-template-columns: 1fr 3fr;
+  }
+  .dish {
+    background:
+      radial-gradient(
+        ellipse 18% 13% at 28% 38%,
+        #c9772f 0 60%,
+        #8c4a1b 61% 100%,
+        transparent 101%
+      ),
+      radial-gradient(
+        ellipse 17% 12% at 60% 30%,
+        #d0823a 0 60%,
+        #8c4a1b 61% 100%,
+        transparent 101%
+      ),
+      radial-gradient(
+        ellipse 16% 12% at 70% 64%,
+        #c56f2a 0 60%,
+        #874418 61% 100%,
+        transparent 101%
+      ),
+      radial-gradient(
+        circle at 40% 70%,
+        #f5d86a 0 7%,
+        #e3b53a 8% 10%,
+        transparent 11%
+      ),
+      radial-gradient(
+        circle at 84% 40%,
+        #f5d86a 0 6%,
+        #e3b53a 7% 9%,
+        transparent 10%
+      ),
+      radial-gradient(circle at 18% 72%, #e9d6a7 0 6%, transparent 7%),
+      radial-gradient(circle at 50% 52%, #e9d6a7 0 6%, transparent 7%),
+      radial-gradient(circle at 88% 78%, #6b8f3f 0 4%, transparent 5%),
+      radial-gradient(circle at 12% 30%, #6b8f3f 0 4%, transparent 5%),
+      linear-gradient(#3a3a3c, #2a2a2c);
+  }
+  .row h5 {
+    margin: 0;
+    font-size: 14px;
+    font-family: var(--p-display);
+    font-weight: var(--p-display-weight, 700);
+    line-height: 1.25;
+  }
+  .meta {
+    font-size: 12px;
+    color: var(--p-muted);
+  }
+  .tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .tags span {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: var(--p-radius-chip, 999px);
+    background: var(--p-chip);
+    color: var(--p-chip-ink);
+  }
+  .fav {
+    color: var(--p-accent);
+    font-size: 18px;
+  }
+  .t1 {
+    background:
+      radial-gradient(circle at 30% 35%, #f0c46a 0 16%, transparent 17%),
+      radial-gradient(circle at 65% 60%, #b8612f 0 20%, transparent 21%),
+      radial-gradient(circle at 40% 72%, #7a9c4f 0 12%, transparent 13%),
+      #e7d9c0;
+  }
+  .t2 {
+    background:
+      radial-gradient(circle at 50% 50%, #f3e2b6 0 30%, transparent 31%),
+      radial-gradient(circle at 50% 50%, #c98b3c 0 42%, transparent 43%),
+      #efe7dc;
+  }
+  .t3 {
+    background:
+      radial-gradient(circle at 35% 40%, #d3452b 0 18%, transparent 19%),
+      radial-gradient(circle at 62% 58%, #e9d6a7 0 22%, transparent 23%),
+      #3f6b3a;
+  }
+
+  /* ================= skins ================= */
+
+  /* Market Stall */
+  .market,
+  .market-dark {
+    --p-display: 'Rubik', system-ui, sans-serif;
+    --p-display-weight: 800;
+    --p-body: 'Karla', system-ui, sans-serif;
+    --p-num: 'Rubik', system-ui, sans-serif;
+  }
+  .market {
+    --p-bg: #f4f1e6;
+    --p-surface: #fffdf5;
+    --p-ink: #1f3a26;
+    --p-muted: #5f6f5d;
+    --p-line: #d9d3bd;
+    --p-frame: #1f3a26;
+    --p-accent: #d9472b;
+    --p-accent-ink: #ffffff;
+    --p-chip: #dbe8c9;
+    --p-chip-ink: #2c4a22;
+    --p-primary: #2f5d3a;
+    --p-primary-ink: #fffdf5;
+    --p-sticker-a: #ffffff;
+    --p-sticker-b: #ffe7a3;
+    --p-sticker-b-ink: #2c4a22;
+    --p-sticker-line: #2c4a22;
+  }
+  .market-dark {
+    --p-bg: #14231a;
+    --p-surface: #1c3023;
+    --p-ink: #f3eedd;
+    --p-muted: #a6b5a1;
+    --p-line: #2e4634;
+    --p-frame: #070d09;
+    --p-accent: #ff6b4a;
+    --p-accent-ink: #1c0b05;
+    --p-chip: #2a4430;
+    --p-chip-ink: #d6ebc4;
+    --p-primary: #ffd66b;
+    --p-primary-ink: #1b1605;
+    --p-gloss: #ffd66b;
+    --p-step-size: 22px;
+    --p-sticker-a: #1c3023;
+    --p-sticker-b: #ffd66b;
+    --p-sticker-b-ink: #1b1605;
+    --p-sticker-line: #d6ebc4;
+  }
+  .market .tags span,
+  .market-dark .tags span {
+    border: 1.5px solid var(--p-sticker-line);
+    background: var(--p-sticker-a);
+    color: var(--p-sticker-line);
+    transform: rotate(-2deg);
+  }
+  .market .tags span:nth-child(2),
+  .market-dark .tags span:nth-child(2) {
+    transform: rotate(2deg);
+    background: var(--p-sticker-b);
+    color: var(--p-sticker-b-ink);
+    border-color: var(--p-sticker-b);
+  }
+
+  /* Bento */
+  .bento,
+  .bento-dark {
+    --p-display: 'M PLUS Rounded 1c', system-ui, sans-serif;
+    --p-display-weight: 800;
+    --p-body: 'Nunito Sans', system-ui, sans-serif;
+    --p-num: 'M PLUS Rounded 1c', system-ui, sans-serif;
+    --p-radius-btn: 16px;
+    --p-radius-row: 18px;
+    --p-radius-lib: 22px;
+    --p-radius-thumb: 14px;
+  }
+  .bento {
+    --p-bg: #fbfbf8;
+    --p-surface: #f2f0ea;
+    --p-ink: #1e2426;
+    --p-muted: #5c6467;
+    --p-line: #e4e1d8;
+    --p-frame: #1e2426;
+    --p-accent: #c2334d;
+    --p-accent-ink: #ffffff;
+    --p-chip: #cfe6c2;
+    --p-chip-ink: #264a1c;
+    --p-primary: #1e2426;
+    --p-progress: #e98b6e;
+    --p-tray-a: #fbe0d4;
+    --p-tray-b: #f7eab8;
+    --p-tray-b-ink: #6b5310;
+  }
+  .bento-dark {
+    --p-bg: #16191b;
+    --p-surface: #212628;
+    --p-ink: #f2efe8;
+    --p-muted: #a3aaad;
+    --p-line: #2e3437;
+    --p-frame: #050607;
+    --p-accent: #ff7a93;
+    --p-accent-ink: #2a0710;
+    --p-chip: #253823;
+    --p-chip-ink: #cfe6c2;
+    --p-primary: #f2efe8;
+    --p-primary-ink: #16191b;
+    --p-progress: #f0a184;
+    --p-tray-a: #3b2721;
+    --p-tray-b: #37301a;
+    --p-tray-b-ink: #f7e3a1;
+  }
+  .bento .uses,
+  .bento-dark .uses {
+    background: var(--p-tray-a);
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+  .bento .next,
+  .bento-dark .next {
+    background: var(--p-tray-b);
+    border: 0;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+  .big .bento .next,
+  .big .bento-dark .next {
+    display: none;
+  }
+  .bento .tags span:nth-child(2),
+  .bento-dark .tags span:nth-child(2) {
+    background: var(--p-tray-b);
+    color: var(--p-tray-b-ink);
+  }
+  .bento .search,
+  .bento-dark .search,
+  .bento .row,
+  .bento-dark .row {
+    border: 0;
+  }
+  .bento .search,
+  .bento-dark .search {
+    border-radius: 16px;
+  }
+  .stand .bento .side,
+  .stand .bento-dark .side {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  /* Night Kitchen */
+  .nk,
+  .nk-dark {
+    --p-display: 'Recursive', system-ui, sans-serif;
+    --p-body: 'Figtree', system-ui, sans-serif;
+    --p-num: 'Recursive', ui-monospace, monospace;
+    --p-step: 'Recursive', sans-serif;
+    --p-step-size: 24px;
+    --p-step-weight: 500;
+  }
+  .nk {
+    --p-bg: #f2f6f5;
+    --p-surface: #ffffff;
+    --p-ink: #10262b;
+    --p-muted: #56706f;
+    --p-line: #d2dfdd;
+    --p-frame: #10262b;
+    --p-accent: #f2a93b;
+    --p-accent-ink: #1b1204;
+    --p-chip: #dcece8;
+    --p-chip-ink: #13443c;
+    --p-primary: #10262b;
+    --p-primary-ink: #f2f6f5;
+    --p-gloss: #13917e;
+    --p-progress: #13917e;
+  }
+  .nk-dark {
+    --p-bg: #0f1b1f;
+    --p-surface: #16262b;
+    --p-ink: #eaf2ef;
+    --p-muted: #93a8a6;
+    --p-line: #264046;
+    --p-frame: #050a0b;
+    --p-accent: #f2a93b;
+    --p-accent-ink: #1b1204;
+    --p-chip: #233b40;
+    --p-chip-ink: #bfe3dc;
+    --p-primary: #f2a93b;
+    --p-primary-ink: #1b1204;
+    --p-gloss: #6fd0bf;
+  }
+  .nk .step,
+  .nk-dark .step {
+    font-variation-settings: 'CASL' 0.6;
+  }
+  .nk .num,
+  .nk .timer,
+  .nk .run,
+  .nk-dark .num,
+  .nk-dark .timer,
+  .nk-dark .run {
+    font-variation-settings: 'MONO' 1;
+  }
+
+  /* Enamel */
+  .enamel,
+  .enamel-dark {
+    --p-display: 'Bricolage Grotesque', 'Atkinson Hyperlegible', sans-serif;
+    --p-display-weight: 800;
+    --p-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+    --p-num: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  }
+  .enamel {
+    --p-bg: #f6f8fb;
+    --p-surface: #ffffff;
+    --p-ink: #13233f;
+    --p-muted: #5b6b86;
+    --p-line: #d5dcea;
+    --p-frame: #13233f;
+    --p-accent: #1f4fd8;
+    --p-accent-ink: #ffffff;
+    --p-chip: #e3eaff;
+    --p-chip-ink: #1a3a9c;
+    --p-primary: #1f4fd8;
+    --p-primary-ink: #ffffff;
+    --p-rim: #13233f;
+  }
+  .enamel-dark {
+    --p-bg: #0e1726;
+    --p-surface: #16223a;
+    --p-ink: #e8eefc;
+    --p-muted: #9aa9c6;
+    --p-line: #26365a;
+    --p-frame: #04080f;
+    --p-accent: #7a9cff;
+    --p-accent-ink: #0b1330;
+    --p-chip: #1d2c52;
+    --p-chip-ink: #c9d6ff;
+    --p-primary: #7a9cff;
+    --p-primary-ink: #0b1330;
+    --p-rim: #34497d;
+  }
+  .enamel .phone,
+  .enamel .library,
+  .enamel-dark .phone,
+  .enamel-dark .library {
+    border: 2px solid var(--p-rim);
+  }
+
+  /* Order Ticket */
+  .ticket,
+  .ticket-dark {
+    --p-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --p-body: 'Barlow', system-ui, sans-serif;
+    --p-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --p-radius-phone: 10px;
+    --p-radius-chip: 4px;
+    --p-radius-btn: 6px;
+    --p-radius-lib: 6px;
+    --p-radius-row: 4px;
+    --p-radius-thumb: 3px;
+    --p-step-weight: 500;
+  }
+  .ticket {
+    --p-bg: #f7faf6;
+    --p-surface: #ffffff;
+    --p-ink: #1c2321;
+    --p-muted: #56645c;
+    --p-line: #d3ded5;
+    --p-frame: #1c2321;
+    --p-accent: #c8322b;
+    --p-accent-ink: #ffffff;
+    --p-chip: #fbe7e5;
+    --p-chip-ink: #9c231d;
+    --p-primary: #1c2321;
+    --p-progress: #1c2321;
+    --p-rule: #c8322b;
+  }
+  .ticket-dark {
+    --p-bg: #151a18;
+    --p-surface: #1d2421;
+    --p-ink: #eef3ef;
+    --p-muted: #9fb0a6;
+    --p-line: #2c3632;
+    --p-frame: #050706;
+    --p-accent: #ff5a4f;
+    --p-accent-ink: #1a0504;
+    --p-chip: #3a201e;
+    --p-chip-ink: #ffb3ad;
+    --p-primary: #eef3ef;
+    --p-primary-ink: #151a18;
+    --p-progress: #eef3ef;
+    --p-rule: #ff5a4f;
+  }
+  .ticket .phone,
+  .ticket .library,
+  .ticket-dark .phone,
+  .ticket-dark .library {
+    border-top: 5px solid var(--p-rule);
+  }
+  .ticket .top b,
+  .ticket .lib-head b,
+  .ticket .row h5,
+  .ticket-dark .top b,
+  .ticket-dark .lib-head b,
+  .ticket-dark .row h5 {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .ticket .top b,
+  .ticket-dark .top b {
+    font-size: 17px;
+  }
+  .ticket .timer,
+  .ticket-dark .timer {
+    font-size: 0.85em;
+    letter-spacing: 0.02em;
+  }
+  .ticket .run,
+  .ticket-dark .run {
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+  .ticket .nav button,
+  .ticket-dark .nav button {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+  }
+
+  /* ---------- notes & names ---------- */
+  .notes,
+  .names {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    display: grid;
+    gap: 14px;
+  }
+  .notes ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .notes li {
+    display: grid;
+    gap: 4px;
+  }
+  .notes li span,
+  .names p {
+    color: var(--muted);
+  }
+  .names p {
+    max-width: 70ch;
+  }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 580px;
+    font-size: 14px;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  td:first-child {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.open {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+  }
+  .pill.taken {
+    background: color-mix(in srgb, var(--taken) 16%, transparent);
+    color: var(--taken);
+  }
+  .pill.weak {
+    background: color-mix(in srgb, var(--weak) 16%, transparent);
+    color: var(--weak);
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (max-width: 820px) {
+    .dir {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 16px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mise · Phase 0 design choice · round 4</div>
+    <h1>Five directions, each with a light and a dark theme</h1>
+    <p class="lede">
+      The settings bar works like the app's own settings: pick how light and
+      dark are chosen, and try big type and stand mode. Tap the underlined word
+      for its definition, the timer to start it, and the round camera button
+      between Back and Next to see the step's photo (stand mode shows it beside
+      the step).
+    </p>
+  </header>
+
+  <form class="settings" id="settings" aria-label="Preview settings">
+    <fieldset>
+      <legend>Appearance</legend>
+      <div class="seg">
+        <input
+          type="radio"
+          name="mode"
+          id="mode-compare"
+          value="compare"
+          checked
+        /><label for="mode-compare">Compare both</label>
+        <input type="radio" name="mode" id="mode-light" value="light" /><label
+          for="mode-light"
+          >Always light</label
+        >
+        <input type="radio" name="mode" id="mode-dark" value="dark" /><label
+          for="mode-dark"
+          >Always dark</label
+        >
+        <input type="radio" name="mode" id="mode-time" value="time" /><label
+          for="mode-time"
+          >Auto · time of day</label
+        >
+        <input type="radio" name="mode" id="mode-device" value="device" /><label
+          for="mode-device"
+          >Auto · device theme</label
+        >
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Cook mode</legend>
+      <label class="check" for="opt-big"
+        ><input type="checkbox" id="opt-big" />Big type</label
+      >
+      <label class="check" for="opt-stand"
+        ><input type="checkbox" id="opt-stand" />Stand mode</label
+      >
+    </fieldset>
+    <p class="status" id="status" aria-live="polite">
+      Showing each direction's <b>light and dark</b> cook mode side by side.
+    </p>
+  </form>
+
+  <section
+    class="dir"
+    id="market"
+    data-light="market"
+    data-dark="market-dark"
+    aria-labelledby="h-market"
+  >
+    <div class="dir-info">
+      <h2 id="h-market">Market Stall</h2>
+      <p>
+        Herb green and tomato red with chunky headings and skewed tag stickers.
+        After dark: leaf green, cream text and a butter-yellow Next button.
+      </p>
+      <div class="palette">
+        <div>
+          <span class="l">Light</span
+          ><span class="sw" style="background: #f4f1e6"></span
+          ><span class="sw" style="background: #2f5d3a"></span
+          ><span class="sw" style="background: #d9472b"></span
+          ><span class="sw" style="background: #ffe7a3"></span>
+        </div>
+        <div>
+          <span class="l">Dark</span
+          ><span class="sw" style="background: #14231a"></span
+          ><span class="sw" style="background: #f3eedd"></span
+          ><span class="sw" style="background: #ff6b4a"></span
+          ><span class="sw" style="background: #ffd66b"></span>
+        </div>
+      </div>
+      <div class="fonts">
+        <div>Headings and numbers <span>Rubik</span></div>
+        <div>Body and steps <span>Karla</span></div>
+      </div>
+    </div>
+    <div class="mocks" data-mocks></div>
+  </section>
+
+  <section
+    class="dir"
+    id="bento"
+    data-light="bento"
+    data-dark="bento-dark"
+    aria-labelledby="h-bento"
+  >
+    <div class="dir-info">
+      <h2 id="h-bento">Bento</h2>
+      <p>
+        Soft compartments group what belongs together without lines. In the dark
+        the trays become deep, warm tints on charcoal.
+      </p>
+      <div class="palette">
+        <div>
+          <span class="l">Light</span
+          ><span class="sw" style="background: #fbfbf8"></span
+          ><span class="sw" style="background: #fbe0d4"></span
+          ><span class="sw" style="background: #f7eab8"></span
+          ><span class="sw" style="background: #c2334d"></span>
+        </div>
+        <div>
+          <span class="l">Dark</span
+          ><span class="sw" style="background: #16191b"></span
+          ><span class="sw" style="background: #3b2721"></span
+          ><span class="sw" style="background: #37301a"></span
+          ><span class="sw" style="background: #ff7a93"></span>
+        </div>
+      </div>
+      <div class="fonts">
+        <div>Headings and numbers <span>M PLUS Rounded 1c</span></div>
+        <div>Body and steps <span>Nunito Sans</span></div>
+      </div>
+    </div>
+    <div class="mocks" data-mocks></div>
+  </section>
+
+  <section
+    class="dir"
+    id="night-kitchen"
+    data-light="nk"
+    data-dark="nk-dark"
+    aria-labelledby="h-nk"
+  >
+    <div class="dir-info">
+      <h2 id="h-nk">Night Kitchen</h2>
+      <p>
+        The largest step text and saffron timers. By day: sea-glass background
+        and deep teal text; by night: the original dark-first look.
+      </p>
+      <div class="palette">
+        <div>
+          <span class="l">Light</span
+          ><span class="sw" style="background: #f2f6f5"></span
+          ><span class="sw" style="background: #10262b"></span
+          ><span class="sw" style="background: #f2a93b"></span
+          ><span class="sw" style="background: #13917e"></span>
+        </div>
+        <div>
+          <span class="l">Dark</span
+          ><span class="sw" style="background: #0f1b1f"></span
+          ><span class="sw" style="background: #eaf2ef"></span
+          ><span class="sw" style="background: #f2a93b"></span
+          ><span class="sw" style="background: #6fd0bf"></span>
+        </div>
+      </div>
+      <div class="fonts">
+        <div>Steps and numbers <span>Recursive</span></div>
+        <div>Body <span>Figtree</span></div>
+      </div>
+    </div>
+    <div class="mocks" data-mocks></div>
+  </section>
+
+  <section
+    class="dir"
+    id="enamel"
+    data-light="enamel"
+    data-dark="enamel-dark"
+    aria-labelledby="h-enamel"
+  >
+    <div class="dir-info">
+      <h2 id="h-enamel">Enamel</h2>
+      <p>
+        Blue-rimmed enamelware on a typeface built for legibility. Dark is a
+        deep navy with a brighter cobalt so timers still pop.
+      </p>
+      <div class="palette">
+        <div>
+          <span class="l">Light</span
+          ><span class="sw" style="background: #f6f8fb"></span
+          ><span class="sw" style="background: #13233f"></span
+          ><span class="sw" style="background: #1f4fd8"></span>
+        </div>
+        <div>
+          <span class="l">Dark</span
+          ><span class="sw" style="background: #0e1726"></span
+          ><span class="sw" style="background: #e8eefc"></span
+          ><span class="sw" style="background: #7a9cff"></span>
+        </div>
+      </div>
+      <div class="fonts">
+        <div>Headings <span>Bricolage Grotesque</span></div>
+        <div>Body <span>Atkinson Hyperlegible</span></div>
+      </div>
+    </div>
+    <div class="mocks" data-mocks></div>
+  </section>
+
+  <section
+    class="dir"
+    id="order-ticket"
+    data-light="ticket"
+    data-dark="ticket-dark"
+    aria-labelledby="h-ticket"
+  >
+    <div class="dir-info">
+      <h2 id="h-ticket">Order Ticket</h2>
+      <p>
+        A kitchen order pad without the paper: red top rule, condensed uppercase
+        headings, straight red timer chips. Dark is a charcoal pass with a
+        hotter red.
+      </p>
+      <div class="palette">
+        <div>
+          <span class="l">Light</span
+          ><span class="sw" style="background: #f7faf6"></span
+          ><span class="sw" style="background: #1c2321"></span
+          ><span class="sw" style="background: #c8322b"></span>
+        </div>
+        <div>
+          <span class="l">Dark</span
+          ><span class="sw" style="background: #151a18"></span
+          ><span class="sw" style="background: #eef3ef"></span
+          ><span class="sw" style="background: #ff5a4f"></span>
+        </div>
+      </div>
+      <div class="fonts">
+        <div>Headings and numbers <span>Barlow Condensed</span></div>
+        <div>Body and steps <span>Barlow</span></div>
+      </div>
+    </div>
+    <div class="mocks" data-mocks></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <h2 id="notes-h">How these settings would work in the app</h2>
+    <ul>
+      <li>
+        <b>Appearance</b
+        ><span
+          >Always light, always dark, auto by time of day (dark from 7pm to 7am,
+          or sunset if we have location), or auto by device theme. Library and
+          cook mode follow the same setting.</span
+        >
+      </li>
+      <li>
+        <b>Big type</b
+        ><span
+          >Step text about 40% larger and the next-step footnote hidden, so the
+          step is all you see from across the kitchen.</span
+        >
+      </li>
+      <li>
+        <b>Stand mode</b
+        ><span
+          >For a tablet or phone on a stand in landscape: step on the left, its
+          ingredients on the right, nothing to scroll.</span
+        >
+      </li>
+      <li>
+        <b>Step photos</b
+        ><span
+          >On phones, a round camera button between Back and Next (only on steps
+          that have a photo) opens the photo in a sheet over the lower half,
+          keeping the step text visible. Turning the phone sideways, or using a
+          tablet or desktop, switches to stand mode with the photo beside the
+          step. Library photos are always shown.</span
+        >
+      </li>
+    </ul>
+  </section>
+
+  <section class="names" id="names" aria-labelledby="names-h">
+    <h2 id="names-h">Name shortlist</h2>
+    <p>
+      Checked with a quick web search for recipe, cooking or food apps with the
+      same name. This is not a trademark or domain search; run one before
+      committing to a name.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Why it fits</th>
+            <th>What turned up</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Saucy</td>
+            <td><span class="pill taken">Risky</span></td>
+            <td>Playful, memorable, food-first</td>
+            <td>
+              "Saucy by KFC", a food-ordering app from a very large brand in a
+              neighbouring category. Recipe managers called Saucier also exist.
+            </td>
+          </tr>
+          <tr>
+            <td>Stoveside</td>
+            <td><span class="pill open">No app found</span></td>
+            <td>Where you actually use cook mode</td>
+            <td>Nothing recipe-related</td>
+          </tr>
+          <tr>
+            <td>Cookline</td>
+            <td><span class="pill open">No app found</span></td>
+            <td>Restaurant "line" plus a line of steps</td>
+            <td>Nothing by that name</td>
+          </tr>
+          <tr>
+            <td>Stepwise</td>
+            <td><span class="pill open">No app found</span></td>
+            <td>Says exactly what cook mode does</td>
+            <td>Generic word; StepChef and SideChef are close in spirit</td>
+          </tr>
+          <tr>
+            <td>Hob</td>
+            <td><span class="pill weak">Cookbook</span></td>
+            <td>Short, British, very kitchen</td>
+            <td>A 2021 stove-top cookbook called Hob; no app</td>
+          </tr>
+          <tr>
+            <td>Sous</td>
+            <td><span class="pill taken">Taken</span></td>
+            <td>Sous chef: the helper at your side</td>
+            <td>
+              At least two AI recipe apps called Sous (iOS, Android, Chrome),
+              plus SousChefAI and SousEye
+            </td>
+          </tr>
+          <tr>
+            <td>Sue (assistant)</td>
+            <td><span class="pill taken">Taken</span></td>
+            <td>Friendly name for the future AI assistant</td>
+            <td>
+              "Sue: AI Sous Chef", an iOS app with a voice-guided cooking
+              assistant, the same idea
+            </td>
+          </tr>
+          <tr>
+            <td>Soue (assistant)</td>
+            <td><span class="pill weak">Unclear</span></td>
+            <td>Sous + Sue</td>
+            <td>No app found, but people won't know how to say or spell it</td>
+          </tr>
+          <tr>
+            <td>Larder · Brigade · Sprig · Ladle · Pinch</td>
+            <td><span class="pill taken">Taken</span></td>
+            <td></td>
+            <td>Existing recipe or meal-planning apps</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<template id="phone">
+  <div class="phone">
+    <div class="top">
+      <span aria-hidden="true">‹</span><b>Weeknight Chicken Traybake</b
+      ><span class="num">3 / 5</span>
+    </div>
+    <div class="progress"><i></i></div>
+    <div class="body">
+      <div class="main">
+        <span class="run">Potatoes · 12:40</span>
+        <p class="step">
+          <button class="gloss" type="button" aria-expanded="false">
+            Deglaze
+          </button>
+          the tray with the lemon juice, then roast for
+          <button class="timer" type="button" aria-pressed="false">
+            <svg viewBox="0 0 10 10" aria-hidden="true">
+              <path d="M2 1l7 4-7 4z" /></svg
+            ><span>35–40 min</span>
+          </button>
+          until the chicken is golden.
+        </p>
+        <div class="tip" hidden>
+          <b>Deglaze</b> · Add liquid to a hot pan to lift the browned bits into
+          a sauce.
+        </div>
+      </div>
+      <div class="side">
+        <div
+          class="side-photo dish"
+          role="img"
+          aria-label="Chicken thighs roasting on a tray with lemon and potatoes"
+        ></div>
+        <div class="uses">
+          <p class="label">For this step</p>
+          <ul>
+            <li><span class="num">1</span>lemon, juiced</li>
+            <li><span class="num">8</span>chicken thighs</li>
+          </ul>
+        </div>
+        <div class="next">
+          <span class="label">Next</span>
+          <p>Mix the yoghurt with the parsley and a squeeze of lemon.</p>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button type="button">Back</button>
+      <button
+        type="button"
+        class="cam"
+        aria-label="Show step photo"
+        aria-expanded="false"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M4 9a2 2 0 0 1 2-2h1.6l1.7-2.2h5.4L16.4 7H18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"
+          />
+          <circle cx="12" cy="13" r="3.4" />
+        </svg>
+      </button>
+      <button type="button" class="primary">Next step</button>
+    </div>
+    <div class="sheet" role="dialog" aria-label="Step 3 photo">
+      <button
+        class="sheet-handle"
+        type="button"
+        aria-label="Close photo"
+      ></button>
+      <div class="sheet-head">
+        <b>Step 3 · Roast</b
+        ><button class="sheet-close" type="button" aria-label="Close photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="sheet-photo dish"
+        role="img"
+        aria-label="Chicken thighs roasting on a tray with lemon and potatoes"
+      ></div>
+      <small
+        >Tip: turn your phone sideways for stand mode, with the photo beside the
+        step.</small
+      >
+    </div>
+  </div>
+</template>
+
+<template id="library">
+  <div class="library">
+    <div class="lib-head"><b>Recipes</b><span>24 saved</span></div>
+    <div class="search">Search recipes or ingredients</div>
+    <div class="row">
+      <div class="thumb t1"></div>
+      <div>
+        <h5>Weeknight Chicken Traybake</h5>
+        <div class="meta">55 min · Serves 4</div>
+        <div class="tags"><span>Dinner</span><span>British</span></div>
+      </div>
+      <span class="fav" aria-label="Favourite">★</span>
+    </div>
+    <div class="row">
+      <div class="thumb t2"></div>
+      <div>
+        <h5>Fluffy Pancakes</h5>
+        <div class="meta">25 min · Makes 8</div>
+        <div class="tags"><span>Breakfast</span></div>
+      </div>
+      <span class="fav" aria-hidden="true"></span>
+    </div>
+    <div class="row">
+      <div class="thumb t3"></div>
+      <div>
+        <h5>Quick Tomato Pasta</h5>
+        <div class="meta">20 min · Serves 2</div>
+        <div class="tags"><span>Weeknight</span><span>Vegetarian</span></div>
+      </div>
+      <span class="fav" aria-hidden="true"></span>
+    </div>
+  </div>
+</template>
+
+<script>
+  (() => {
+    const form = document.getElementById('settings');
+    const status = document.getElementById('status');
+    const phoneTpl = document.getElementById('phone');
+    const libraryTpl = document.getElementById('library');
+    const deviceDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const KEY = 'mise-style-settings';
+
+    const load = () => {
+      try {
+        return JSON.parse(localStorage.getItem(KEY) || '{}');
+      } catch {
+        return {};
+      }
+    };
+    const save = (s) => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(s));
+      } catch {
+        /* storage unavailable */
+      }
+    };
+
+    const saved = load();
+    if (saved.mode && form.elements.mode)
+      form.querySelector(`input[name="mode"][value="${saved.mode}"]`)?.click();
+    if (typeof saved.big === 'boolean')
+      form.elements['opt-big'].checked = saved.big;
+    if (typeof saved.stand === 'boolean')
+      form.elements['opt-stand'].checked = saved.stand;
+
+    const isNight = (d) => d.getHours() >= 19 || d.getHours() < 7;
+
+    function figure(skin, caption, content) {
+      const fig = document.createElement('figure');
+      fig.className = skin;
+      const cap = document.createElement('figcaption');
+      cap.textContent = caption;
+      fig.append(cap, content.content.cloneNode(true));
+      return fig;
+    }
+
+    function render() {
+      const mode = form.querySelector('input[name="mode"]:checked').value;
+      const big = form.elements['opt-big'].checked;
+      const stand = form.elements['opt-stand'].checked;
+
+      save({ mode, big, stand });
+
+      let theme = null;
+      if (mode === 'light' || mode === 'dark') theme = mode;
+      if (mode === 'time') theme = isNight(new Date()) ? 'dark' : 'light';
+      if (mode === 'device') theme = deviceDark.matches ? 'dark' : 'light';
+
+      const time = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      status.innerHTML =
+        mode === 'compare'
+          ? 'Showing each direction’s <b>light and dark</b> cook mode side by side.'
+          : mode === 'time'
+            ? `It’s ${time} here, so the app would be <b>${theme}</b> (dark from 7pm to 7am).`
+            : mode === 'device'
+              ? `Your device is set to <b>${theme}</b>, so the app follows it. Change your system theme to see it switch.`
+              : `The app stays <b>${theme}</b> all the time.`;
+
+      document.querySelectorAll('.dir').forEach((dir) => {
+        const slot = dir.querySelector('[data-mocks]');
+        slot.replaceChildren();
+        slot.classList.toggle('big', big);
+        slot.classList.toggle('stand', stand);
+        if (theme) {
+          const skin = dir.dataset[theme];
+          slot.append(
+            figure(skin, `${theme} · cook mode`, phoneTpl),
+            figure(skin, `${theme} · library`, libraryTpl),
+          );
+        } else {
+          slot.append(
+            figure(dir.dataset.light, 'light · cook mode', phoneTpl),
+            figure(dir.dataset.dark, 'dark · cook mode', phoneTpl),
+          );
+        }
+      });
+    }
+
+    form.addEventListener('change', render);
+    form.addEventListener('submit', (e) => e.preventDefault());
+    deviceDark.addEventListener?.('change', () => {
+      if (form.querySelector('input[name="mode"]:checked').value === 'device')
+        render();
+    });
+    setInterval(() => {
+      if (form.querySelector('input[name="mode"]:checked').value === 'time')
+        render();
+    }, 60_000);
+
+    // Glossary and timers (delegated, so they survive re-rendering).
+    const timers = new WeakMap();
+    document.addEventListener('click', (e) => {
+      const gloss = e.target.closest('.phone .gloss');
+      if (gloss) {
+        const tip = gloss.closest('.phone').querySelector('.tip');
+        tip.hidden = !tip.hidden;
+        gloss.setAttribute('aria-expanded', String(!tip.hidden));
+        return;
+      }
+      const cam = e.target.closest('.phone .cam');
+      const close = e.target.closest(
+        '.phone .sheet-handle, .phone .sheet-close',
+      );
+      if (cam || close) {
+        const phone = (cam || close).closest('.phone');
+        const sheet = phone.querySelector('.sheet');
+        const open = cam ? !sheet.classList.contains('open') : false;
+        sheet.classList.toggle('open', open);
+        phone.querySelector('.cam').setAttribute('aria-expanded', String(open));
+        if (open)
+          sheet.querySelector('.sheet-close').focus({ preventScroll: true });
+        else if (close)
+          phone.querySelector('.cam').focus({ preventScroll: true });
+        return;
+      }
+      const btn = e.target.closest('.phone .timer');
+      if (!btn) return;
+      const label = btn.querySelector('span');
+      if (timers.has(btn)) {
+        clearInterval(timers.get(btn));
+        timers.delete(btn);
+        label.textContent = '35–40 min';
+        btn.setAttribute('aria-pressed', 'false');
+        return;
+      }
+      const endsAt = Date.now() + 35 * 60 * 1000;
+      const tick = () => {
+        const s = Math.max(0, Math.round((endsAt - Date.now()) / 1000));
+        label.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      };
+      tick();
+      timers.set(btn, setInterval(tick, 1000));
+      btn.setAttribute('aria-pressed', 'true');
+    });
+
+    render();
+  })();
+</script>

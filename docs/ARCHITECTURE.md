@@ -177,6 +177,8 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - RLS on every table; pgTAP tests assert user A cannot read or write user B's rows.
 - Storage buckets use owner-prefixed paths (`{owner_id}/…`) with matching storage policies.
 - The edge function fetching URLs validates scheme, blocks private IP ranges (SSRF), caps response size and timeout.
+- Response headers (CSP, nosniff, referrer and permissions policies) are in `apps/web/public/_headers` for
+  Cloudflare Pages. The CSP allows only same-origin scripts and fonts plus Supabase for data and images.
 - No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in
   GitHub Actions / Cloudflare / Supabase settings.
 
