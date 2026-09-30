@@ -60,6 +60,9 @@ describe('parseIngredientLine', () => {
     ],
     ['Olive oil for frying', { item: 'Olive oil', prepNote: 'for frying' }],
     ['lemon wedges to serve', { item: 'lemon wedges', prepNote: 'to serve' }],
+    ['mint leaves to garnish', { item: 'mint leaves', prepNote: 'to garnish' }],
+    ['sprinkles to decorate', { item: 'sprinkles', prepNote: 'to decorate' }],
+    ['chilli sauce to serve with', { item: 'chilli sauce to serve with' }],
     [
       '1 tbsp sugar (optional)',
       { qtyMin: 1, unit: 'tbsp', item: 'sugar', optional: true },

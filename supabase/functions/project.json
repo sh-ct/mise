@@ -4,7 +4,6 @@
   "projectType": "application",
   "sourceRoot": "supabase/functions",
   "tags": ["type:functions"],
-  "implicitDependencies": ["core"],
   "targets": {
     "test": {
       "executor": "nx:run-commands",

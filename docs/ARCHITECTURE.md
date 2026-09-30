@@ -50,15 +50,16 @@ mise/
 ├─ supabase/
 │  ├─ migrations/          plain SQL, source of truth for schema
 │  ├─ functions/
-│  │  └─ import-url/       fetch page → JSON-LD → RecipeDraft
+│  │  ├─ _shared/          URL guards, guarded fetch (shared by functions)
+│  │  └─ import-url/       fetch page → JSON-LD / page text → RecipeDraft
 │  ├─ tests/               RLS / SQL tests
 │  └─ seed.sql
 └─ docs/
 ```
 
-**Boundary rule (Nx tags):** `apps/*` may depend on `packages/*`; `packages/core` depends on nothing but Zod.
-Edge functions import `packages/core` so parsing logic is shared client/server — needs a Phase 0 spike to
-confirm the Deno import setup.
+**Boundary rule (Nx tags):** `apps/*` may depend on `packages/*`; `packages/core` depends on nothing but Zod;
+edge functions (`type:functions`) may depend only on core, which they import as `@mise/core` so parsing logic
+is shared client/server ([ADR 0008](adr/0008-core-in-deno.md)).
 
 ## Data model
 
@@ -150,7 +151,7 @@ to suppress a glossary match for that step).
 ### Import pipeline
 
 ```
-URL  ──► edge fn import-url ──► JSON-LD mapper ─┐
+URL  ──► edge fn import-url ──► JSON-LD / HTML ─┐
 Text ──────────────────────────► text splitter ──┼──► RecipeDraft (Zod) ──► editor (review) ──► save
 Scan ──► storage + Tesseract.js ► text splitter ─┘            ▲
                                                 auto-link step↔ingredient
@@ -206,17 +207,21 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - RLS on every table; pgTAP tests assert user A cannot read or write user B's rows.
 - Storage buckets use owner-prefixed paths (`{owner_id}/…`) with matching storage policies.
 - Recipe text from imports is untrusted: render it with text bindings or `StepSegment`s, never `[innerHTML]`.
-- The URL-import edge function (`supabase/functions/import-url`, guards in `_shared/url-guard.ts`) does:
+- The URL-import edge function (`supabase/functions/import-url`, guards in `_shared/`) does:
   - require a user JWT and rate-limit per user, so it can't be used as an open proxy;
   - allow http(s) on ports 80/443 only, no credentials in the URL; resolve DNS and block loopback, private,
-    link-local, metadata, IPv6 ULA and IPv4-mapped addresses; follow redirects manually, re-checking each hop;
-  - stream the response with a byte cap (~2 MB), a timeout, and a text/html content-type check;
-  - pass the final post-redirect URL as `sourceUrl` (not the page's own claim), wrap parsing in a time budget,
-    and return only the validated draft;
-  - treat `heroImageUrl` as attacker-chosen: the client uploads it through the same guarded fetch, never
-    hotlinks it (which would leak the user's IP to the page owner). An image-fetching function is still to do.
-  - Residual risk: the runtime can't pin the resolved address, so DNS rebinding between the check and the
-    fetch is narrowed (every redirect hop is re-checked) but not eliminated.
+    link-local, metadata, IPv6 ULA and IPv4-embedding (mapped, NAT64, 6to4, Teredo) addresses; follow
+    redirects manually, re-checking each hop;
+  - stream the response with a byte cap (~2 MB), one timeout covering DNS, connect and body, and a text/html
+    content-type check;
+  - pass the final post-redirect URL as `sourceUrl` (not the page's own claim) and return only the validated
+    draft;
+  - Residual risk: the runtime can't pin the resolved address, so a name can resolve differently for the
+    check and for fetch (DNS rebinding). Lookups fail closed and every hop is re-checked, and the damage is
+    limited to blind GETs on ports 80/443 returning HTML; before going public, route fetches through an egress
+    proxy that checks the address at connect time (e.g. smokescreen via `Deno.createHttpClient({ proxy })`).
+- Not built yet: an image-fetch function. `heroImageUrl` from an import is attacker-chosen, so the client must
+  upload it through the same guarded fetch, never hotlink it (which would leak the user's IP to the page owner).
 - `packages/core` importers are linear-time on hostile input and clip everything to `LIMITS`, so the
   function's own caps are defence in depth.
 - No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in

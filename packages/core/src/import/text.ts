@@ -1,7 +1,7 @@
 import type { IdFactory } from '../ids.ts';
 import { looksLikeIngredient } from '../ingredients/parse-ingredient.ts';
 import { parseLeadingQuantity } from '../quantity/quantity.ts';
-import type { RecipeDraft, SourceType } from '../schema/recipe.ts';
+import { LIMITS, type RecipeDraft, type SourceType } from '../schema/recipe.ts';
 import { detectDurations } from '../steps/durations.ts';
 import { BULLET, LIST_NUMBER } from '../text/normalize.ts';
 import {
@@ -26,6 +26,11 @@ export interface TextImportOptions {
   sourceType?: Extract<SourceType, 'text' | 'scan' | 'url'>;
   sourceUrl?: string;
   idFactory?: IdFactory;
+}
+
+/** Whether the text has an "Ingredients" / "You'll need" heading line. */
+export function hasIngredientsHeading(text: string): boolean {
+  return text.split('\n').some((line) => INGREDIENT_HEADER.test(line.trim()));
 }
 
 const endsSentence = (line: string) => /[.!?)]["'”’]?$/.test(line);
@@ -65,6 +70,9 @@ export function parseRecipeText(
 
   const current = (sections: RawSection[]) =>
     sections[sections.length - 1] as RawSection;
+  // Whether the step being built ends a sentence: its last appended line decides, so checking stays
+  // constant-time however long the step grows.
+  let stepEnded = false;
   const addStep = (line: string, forceNew: boolean) => {
     const section = current(raw.stepSections);
     const last = section.lines.length - 1;
@@ -76,9 +84,11 @@ export function parseRecipeText(
       !forceNew &&
       !isNumbered &&
       !BULLET.test(line) &&
-      (numbered || !endsSentence(section.lines[last] ?? ''));
-    if (continuation) section.lines[last] = `${section.lines[last]} ${content}`;
-    else section.lines.push(content);
+      (numbered || !stepEnded);
+    if (!continuation) section.lines.push(content);
+    else if ((section.lines[last] ?? '').length < LIMITS.stepText)
+      section.lines[last] = `${section.lines[last]} ${content}`;
+    stepEnded = endsSentence(content);
   };
 
   for (const line of lines) {

@@ -15,8 +15,7 @@ const MAX_URL_LENGTH = 2000;
 
 /** Shape checks that need no network: scheme, credentials, port, literal IP addresses. */
 export function checkUrl(raw: string): GuardResult {
-  if (typeof raw !== 'string' || raw.length > MAX_URL_LENGTH)
-    return { ok: false, reason: 'invalid-url' };
+  if (raw.length > MAX_URL_LENGTH) return { ok: false, reason: 'invalid-url' };
   let url: URL;
   try {
     url = new URL(raw.trim());
@@ -30,7 +29,11 @@ export function checkUrl(raw: string): GuardResult {
   if (url.port && url.port !== '80' && url.port !== '443')
     return { ok: false, reason: 'unsupported-port' };
 
-  const host = url.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  // A trailing dot is the same host to DNS ("localhost." is localhost).
+  const host = url.hostname
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.+$/, '')
+    .toLowerCase();
   if (
     !host ||
     host === 'localhost' ||
@@ -40,9 +43,14 @@ export function checkUrl(raw: string): GuardResult {
   ) {
     return { ok: false, reason: 'blocked-address' };
   }
-  if ((isIpv4(host) || host.includes(':')) && isBlockedIp(host))
+  if (isIpLiteral(host) && isBlockedIp(host))
     return { ok: false, reason: 'blocked-address' };
   return { ok: true, url };
+}
+
+/** Whether a hostname (without IPv6 brackets) is an IP address rather than a name to resolve. */
+export function isIpLiteral(host: string): boolean {
+  return isIpv4(host) || host.includes(':');
 }
 
 function isIpv4(value: string): boolean {
@@ -114,46 +122,24 @@ export function isBlockedIp(ip: string): boolean {
   const h = ipv6Hextets(ip);
   if (!h) return true; // unparseable: refuse
   const [a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, last = 0] = h;
-  if (h.every((x) => x === 0)) return true; // ::
-  if (
-    a === 0 &&
-    b === 0 &&
-    c === 0 &&
-    d === 0 &&
-    e === 0 &&
-    f === 0 &&
-    g === 0 &&
-    last === 1
-  )
-    return true; // ::1
-  // IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible: check the embedded IPv4
-  if (
-    a === 0 &&
-    b === 0 &&
-    c === 0 &&
-    d === 0 &&
-    e === 0 &&
-    (f === 0xffff || f === 0)
-  ) {
-    return isBlockedIp(`${g >> 8}.${g & 0xff}.${last >> 8}.${last & 0xff}`);
+  const embeddedV4 = (hi: number, lo: number) =>
+    isBlockedIp(`${hi >> 8}.${hi & 0xff}.${lo >> 8}.${lo & 0xff}`);
+  // ::/96 (IPv4-compatible, also covers :: and ::1), ::ffff:0:0/96 (mapped), ::ffff:0:0:0/96 (SIIT)
+  if (a === 0 && b === 0 && c === 0 && d === 0) {
+    if (e === 0 && (f === 0 || f === 0xffff)) return embeddedV4(g, last);
+    if (e === 0xffff && f === 0) return embeddedV4(g, last);
   }
+  // NAT64: decode the well-known 64:ff9b::/96; block the rest of 64:ff9b::/32 (incl. local-use 64:ff9b:1::/48)
   if (a === 0x64 && b === 0xff9b)
-    return isBlockedIp(`${g >> 8}.${g & 0xff}.${last >> 8}.${last & 0xff}`); // NAT64
+    return c === 0 && d === 0 && e === 0 && f === 0
+      ? embeddedV4(g, last)
+      : true;
+  if (a === 0x100 && b === 0 && c === 0 && d === 0) return true; // 100::/64 discard
+  if (a === 0x2002) return embeddedV4(b, c); // 6to4
+  if (a === 0x2001 && b === 0) return true; // Teredo
   if ((a & 0xfe00) === 0xfc00) return true; // fc00::/7 unique local
   if ((a & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
   if ((a & 0xff00) === 0xff00) return true; // ff00::/8 multicast
   if (a === 0x2001 && b === 0x0db8) return true; // documentation
   return false;
-}
-
-export const IMPORT_LIMITS = {
-  maxBytes: 2 * 1024 * 1024,
-  timeoutMs: 10_000,
-  maxRedirects: 5,
-} as const;
-
-/** Whether a response's content type is a web page we can parse. */
-export function isHtml(contentType: string | null): boolean {
-  const type = (contentType ?? '').split(';')[0]?.trim().toLowerCase();
-  return type === 'text/html' || type === 'application/xhtml+xml';
 }

@@ -243,6 +243,14 @@ For the best flavour, rest it.`);
     ]);
   });
 
+  it('stays linear on a huge unpunctuated method', () => {
+    const text = `Title\nMethod\n${'mix it\n'.repeat(300_000)}`;
+    const started = performance.now();
+    const draft = parseRecipeText(text);
+    expect(performance.now() - started).toBeLessThan(2000);
+    expect(RecipeDraftSchema.safeParse(draft).success).toBe(true);
+  });
+
   it('is exposed through the RecipeParser interface', async () => {
     expect(plainTextParser.canParse({ kind: 'html', html: '' })).toBe(false);
     const draft = await plainTextParser.parse({

@@ -74,7 +74,7 @@ Each phase ends deployed and usable.
 
 - Public GitHub repo, protected `main`, commitlint.
 - Nx + pnpm workspace; Angular app with Tailwind + spartan/ui; `packages/core`; Supabase CLI local stack.
-- Spikes: Signal Forms stability; Deno edge function importing `packages/core`.
+- Spikes: Signal Forms stability; Deno edge function importing `packages/core` (done: ADR 0008).
 - Auth (email OTP code + magic link), owner-scoped RLS pattern, first migration, first pgTAP test.
 - CI: lint, typecheck, Vitest, pgTAP, Playwright, build; Cloudflare Pages PR previews; migrations to prod on merge.
 - Installable empty PWA shell.

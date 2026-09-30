@@ -306,6 +306,36 @@ describe('htmlParser', () => {
       <p><a href="https://example.test">More information...</a></p></main></body></html>`;
     expect(await htmlParser.parse({ kind: 'html', html })).toBeUndefined();
   });
+
+  it('accepts a single unquantified ingredient under an Ingredients heading', async () => {
+    const html = `<html><body><article><h1>Buttered Greens</h1><h2>Ingredients</h2>
+      <ul><li>Salt and freshly ground black pepper to taste</li></ul><h2>Method</h2>
+      <p>Steam the greens for four minutes.</p><p>Toss with butter and season well.</p></article></body></html>`;
+    const draft = await htmlParser.parse({ kind: 'html', html });
+    expect(allIngredients(draft!)).toHaveLength(1);
+    expect(allSteps(draft!)).toHaveLength(2);
+  });
+
+  it('finds no recipe in a page of short lines and sentences without an Ingredients heading', async () => {
+    const html = `<html><body><article><h1>Why I moved to Lisbon</h1><p>5 min read</p>
+      <p>I had been thinking about leaving the city for years before I finally did it.</p>
+      <p>The light here is different, and so is the food, which is why I started this blog.</p></article></body></html>`;
+    expect(await htmlParser.parse({ kind: 'html', html })).toBeUndefined();
+  });
+
+  it.each([
+    [
+      'with steps but no ingredients',
+      '<p>Mix everything together in a large bowl.</p>',
+    ],
+    [
+      'with ingredients but no steps',
+      '<h2>Ingredients</h2><ul><li>2 eggs</li><li>100g flour</li></ul>',
+    ],
+  ])('finds no recipe on a page %s', async (_, body) => {
+    const html = `<html><body><article><h1>Snack</h1>${body}</article></body></html>`;
+    expect(await htmlParser.parse({ kind: 'html', html })).toBeUndefined();
+  });
 });
 
 describe('helpers', () => {

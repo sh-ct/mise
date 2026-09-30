@@ -1,4 +1,4 @@
-import { checkUrl, isBlockedIp, isHtml } from './url-guard.ts';
+import { checkUrl, isBlockedIp, isIpLiteral } from './url-guard.ts';
 
 describe('checkUrl', () => {
   it.each([
@@ -18,6 +18,8 @@ describe('checkUrl', () => {
     ['https://user:pass@example.com/', 'credentials-in-url'],
     ['https://example.com:8080/', 'unsupported-port'],
     ['http://localhost/', 'blocked-address'],
+    ['http://localhost./', 'blocked-address'],
+    ['http://foo.internal./', 'blocked-address'],
     ['http://api.localhost/', 'blocked-address'],
     ['http://metadata.google.internal/', 'blocked-address'],
     ['http://printer.local/', 'blocked-address'],
@@ -66,6 +68,12 @@ describe('isBlockedIp', () => {
     'fe80::1%eth0',
     'ff02::1',
     '2001:db8::1',
+    '::ffff:0:7f00:1', // SIIT-translated 127.0.0.1
+    '2002:7f00:1::', // 6to4 wrapping 127.0.0.1
+    '2002:c0a8:101::1', // 6to4 wrapping 192.168.1.1
+    '2001:0:4136:e378:8000:63bf:3fff:fdd2', // Teredo
+    '64:ff9b:1::a00:1', // local-use NAT64
+    '100::1', // discard
     'not-an-ip',
   ])('blocks IPv6 %s', (ip) => expect(isBlockedIp(ip)).toBe(true));
 
@@ -73,16 +81,17 @@ describe('isBlockedIp', () => {
     '2606:4700:4700::1111',
     '2a00:1450:4009:81f::200e',
     '::ffff:8.8.8.8',
+    '2002:808:808::1', // 6to4 wrapping 8.8.8.8
   ])('allows public IPv6 %s', (ip) => {
     expect(isBlockedIp(ip)).toBe(false);
   });
 });
 
-describe('isHtml', () => {
-  it('accepts HTML content types only', () => {
-    expect(isHtml('text/html; charset=utf-8')).toBe(true);
-    expect(isHtml('application/xhtml+xml')).toBe(true);
-    expect(isHtml('application/json')).toBe(false);
-    expect(isHtml(null)).toBe(false);
+describe('isIpLiteral', () => {
+  it('tells addresses from names', () => {
+    expect(isIpLiteral('93.184.216.34')).toBe(true);
+    expect(isIpLiteral('2606:4700::1111')).toBe(true);
+    expect(isIpLiteral('1.2.3.example.com')).toBe(false);
+    expect(isIpLiteral('example.com')).toBe(false);
   });
 });

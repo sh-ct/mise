@@ -5,7 +5,7 @@ import {
 } from '../schema/recipe.ts';
 import { htmlToText, removeElements } from './html.ts';
 import { importRecipeFromHtml } from './jsonld.ts';
-import { parseRecipeText } from './text.ts';
+import { hasIngredientsHeading, parseRecipeText } from './text.ts';
 
 export type RecipeInput =
   | { kind: 'html'; html: string; url?: string }
@@ -25,7 +25,8 @@ export interface RecipeParser {
 /**
  * Recipe web pages: schema.org JSON-LD when the page has it (most recipe sites), otherwise the page's
  * main text through the plain-text splitter. The fallback is noisy by nature; the editor review is
- * what makes it usable. A page counts as a recipe only if the fallback finds both ingredients and steps.
+ * what makes it usable. A page counts as a recipe only with an "Ingredients" heading plus ingredients and
+ * steps: without that structure, any page of short lines and sentences would read as a recipe.
  */
 export const htmlParser: RecipeParser = {
   name: 'html',
@@ -38,7 +39,7 @@ export const htmlParser: RecipeParser = {
     );
     if (fromJsonLd) return fromJsonLd;
     const text = htmlToText(mainContent(input.html));
-    if (!text) return undefined;
+    if (!hasIngredientsHeading(text)) return undefined;
     const draft = parseRecipeText(text, {
       sourceType: 'url',
       ...(input.url && { sourceUrl: input.url }),

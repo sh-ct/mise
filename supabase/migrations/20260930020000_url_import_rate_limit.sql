@@ -8,6 +8,8 @@ create table private.url_import_log (
 
 create index url_import_log_user_time_idx on private.url_import_log (user_id, requested_at desc);
 
+-- Only register_url_import() touches the log; RLS with no policies keeps the every-table-has-RLS rule.
+alter table private.url_import_log enable row level security;
 revoke all on private.url_import_log from public, anon, authenticated;
 
 -- Records an import for the calling user, or raises SQLSTATE PT429 (HTTP 429 through PostgREST) when the
@@ -24,6 +26,9 @@ begin
   if v_user is null then
     raise exception 'not authenticated' using errcode = '28000';
   end if;
+
+  -- Serialise each user's calls so parallel requests can't all pass the count before any insert.
+  perform pg_advisory_xact_lock(hashtext('register_url_import'), hashtext(v_user::text));
 
   delete from private.url_import_log where user_id = v_user and requested_at < now() - interval '1 day';
 

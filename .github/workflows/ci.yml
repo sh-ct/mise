@@ -72,4 +72,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check edge functions under Deno (they import packages/core directly)
-        run: deno check --config supabase/functions/import-url/deno.json supabase/functions/import-url/index.ts
+        run: |
+          for config in supabase/functions/*/deno.json; do
+            deno check --config "$config" "$(dirname "$config")/index.ts"
+          done
