@@ -5,12 +5,7 @@ import {
   type Session,
 } from '@supabase/supabase-js';
 import { SUPABASE } from '../supabase/supabase';
-
-/** Why an auth call failed, in terms the UI can explain. */
-export type AuthFailure =
-  'rate-limited' | 'invalid-code' | 'network' | 'unknown';
-
-export type AuthResult = { ok: true } | { ok: false; reason: AuthFailure };
+import type { AuthFailure, AuthResult } from './auth-result';
 
 const OK: AuthResult = { ok: true };
 
@@ -35,15 +30,11 @@ export class AuthRepository {
       email,
       options: { shouldCreateUser: false },
     });
-    // An unknown address is reported as sent, so the form can't be used to discover who has an account.
-    if (
-      error &&
-      ['otp_disabled', 'signup_disabled', 'user_not_found'].includes(
-        error.code ?? '',
-      )
-    )
+    // An unknown address is reported as sent, so the form doesn't say who has an account. (GoTrue's own API
+    // still answers differently; see docs/ARCHITECTURE.md#auth.)
+    if (error?.code === 'otp_disabled' || error?.code === 'signup_disabled')
       return OK;
-    return toResult(error);
+    return toResult(error, EMAIL_ERRORS);
   }
 
   async verifyCode(email: string, code: string): Promise<AuthResult> {
@@ -52,7 +43,7 @@ export class AuthRepository {
       token: code,
       type: 'email',
     });
-    return toResult(error);
+    return toResult(error, TOKEN_ERRORS);
   }
 
   /** Completes sign-in from the link in the email (its token hash). */
@@ -61,23 +52,35 @@ export class AuthRepository {
       token_hash: tokenHash,
       type: 'email',
     });
-    return toResult(error);
+    return toResult(error, TOKEN_ERRORS);
   }
 
-  /** Signs out this device only. */
-  async signOut(): Promise<AuthResult> {
-    const { error } = await this.supabase.auth.signOut({ scope: 'local' });
-    return toResult(error);
+  /** Signs out this device. supabase-js clears the local session even when the server call fails. */
+  async signOut(): Promise<void> {
+    await this.supabase.auth.signOut({ scope: 'local' });
   }
 }
 
-function toResult(error: AuthError | null): AuthResult {
+/** GoTrue error codes that mean the user's input was wrong, per call. */
+const EMAIL_ERRORS: Record<string, AuthFailure> = {
+  validation_failed: 'invalid-email',
+  email_address_invalid: 'invalid-email',
+};
+const TOKEN_ERRORS: Record<string, AuthFailure> = {
+  otp_expired: 'invalid-code',
+  validation_failed: 'invalid-code',
+};
+
+function toResult(
+  error: AuthError | null,
+  inputErrors: Record<string, AuthFailure>,
+): AuthResult {
   if (!error) return OK;
   if (isAuthRetryableFetchError(error)) return { ok: false, reason: 'network' };
   if (error.status === 429 || error.code?.startsWith('over_'))
     return { ok: false, reason: 'rate-limited' };
-  if (error.code === 'otp_expired' || error.code === 'validation_failed')
-    return { ok: false, reason: 'invalid-code' };
+  const input = inputErrors[error.code ?? ''];
+  if (input) return { ok: false, reason: input };
   console.error(error);
   return { ok: false, reason: 'unknown' };
 }

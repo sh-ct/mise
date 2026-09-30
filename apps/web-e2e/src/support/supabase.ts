@@ -43,7 +43,17 @@ async function admin(
   return response;
 }
 
-/** A confirmed user with an address unique to this test run (sign-up is off, so tests create users). */
+/** Creates a confirmed user (sign-up is off, so tests create users through the admin API). */
+async function postUser(email: string, allowExisting = false): Promise<string> {
+  const response = await admin(
+    'users',
+    { method: 'POST', body: JSON.stringify({ email, email_confirm: true }) },
+    allowExisting ? 422 : undefined,
+  );
+  return ((await response.json()) as { id?: string }).id ?? '';
+}
+
+/** A user with an address unique to this test run. */
 export async function createUser(
   label: string,
 ): Promise<{ id: string; email: string }> {
@@ -51,22 +61,12 @@ export async function createUser(
     `e2e-${label}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@mise.test`
       .toLowerCase()
       .replace(/[^a-z0-9@.-]/g, '-');
-  const user = (await (
-    await admin('users', {
-      method: 'POST',
-      body: JSON.stringify({ email, email_confirm: true }),
-    })
-  ).json()) as { id: string };
-  return { id: user.id, email };
+  return { id: await postUser(email), email };
 }
 
-/** A confirmed user with a fixed address, created on first use (422: already exists). */
+/** A user with a fixed address, created on first use (422: already exists). */
 export async function ensureUser(email: string): Promise<void> {
-  await admin(
-    'users',
-    { method: 'POST', body: JSON.stringify({ email, email_confirm: true }) },
-    422,
-  );
+  await postUser(email, true);
 }
 
 export async function deleteUser(id: string): Promise<void> {

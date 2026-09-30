@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, untracked } from '@angular/core';
 import {
   Router,
   RouterLink,
@@ -33,11 +33,14 @@ export class Shell {
   ];
 
   constructor() {
-    // Signing out here, in another tab or by session expiry all land on the sign-in page.
+    // Signing out here, in another tab or by session expiry all land on the sign-in page, which returns here.
     const auth = inject(AuthStore);
     const router = inject(Router);
     effect(() => {
-      if (auth.status() === 'signed-out') void router.navigate(['/sign-in']);
+      if (auth.status() === 'signed-out')
+        void router.navigate(['/sign-in'], {
+          queryParams: { next: untracked(() => router.url) },
+        });
     });
   }
 }

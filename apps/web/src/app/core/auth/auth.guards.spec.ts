@@ -6,31 +6,16 @@ import {
   FakeAuthRepository,
   provideFakeAuth,
 } from '../../../testing/fake-auth';
-import { safeNext, signedInGuard, signedOutGuard } from './auth.guards';
+import { signedInGuard, signedOutGuard } from './auth.guards';
 
 @Component({ template: '' })
 class Blank {}
 
-describe('safeNext', () => {
-  it.each([
-    ['/settings', '/settings'],
-    ['/recipes?q=soup', '/recipes?q=soup'],
-    [null, '/recipes'],
-    ['', '/recipes'],
-    ['https://evil.test', '/recipes'],
-    ['//evil.test/x', '/recipes'],
-    ['/\\evil.test', '/recipes'],
-    ['settings', '/recipes'],
-  ])('%s → %s', (next, expected) => {
-    expect(safeNext(next)).toBe(expected);
-  });
-});
-
 describe('auth guards', () => {
-  async function navigate(url: string, email?: string) {
+  function configure(repository: FakeAuthRepository) {
     TestBed.configureTestingModule({
       providers: [
-        provideFakeAuth(new FakeAuthRepository(email)),
+        provideFakeAuth(repository),
         provideRouter([
           { path: 'sign-in', component: Blank, canActivate: [signedOutGuard] },
           {
@@ -44,6 +29,10 @@ describe('auth guards', () => {
         ]),
       ],
     });
+  }
+
+  async function navigate(url: string, email?: string) {
+    configure(new FakeAuthRepository(email));
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);
     return TestBed.inject(Router).url;
@@ -65,6 +54,21 @@ describe('auth guards', () => {
     expect(
       await navigate('/sign-in?next=%2F%2Fevil.test', 'a@example.test'),
     ).toBe('/recipes');
+  });
+
+  it('waits for the saved session before deciding', async () => {
+    const repository = new FakeAuthRepository('a@example.test', {
+      settled: false,
+    });
+    configure(repository);
+    const harness = await RouterTestingHarness.create();
+    const navigation = harness.navigateByUrl('/settings');
+    await Promise.resolve();
+    expect(TestBed.inject(Router).url).toBe('/');
+
+    repository.settle();
+    await navigation;
+    expect(TestBed.inject(Router).url).toBe('/settings');
   });
 
   it('shows sign-in to signed-out users', async () => {

@@ -96,19 +96,9 @@ describe('SettingsPage', () => {
       (b) => b.textContent?.trim() === 'Sign out',
     );
     signOut?.click();
+    signOut?.click(); // ignored while in flight
     await fixture.whenStable();
-    expect(repository.signOut).toHaveBeenCalled();
-  });
-
-  it('says when signing out fails', async () => {
-    const { fixture, el } = await render();
-    repository.result = { ok: false, reason: 'network' };
-    [...el.querySelectorAll('button')]
-      .find((b) => b.textContent?.trim() === 'Sign out')
-      ?.click();
-    await fixture.whenStable();
-    expect(el.querySelector('[role="alert"]')?.textContent).toContain(
-      'Couldn’t sign out',
-    );
+    expect(repository.signOut).toHaveBeenCalledTimes(1);
+    expect(signOut?.textContent).toContain('Signing out…');
   });
 });

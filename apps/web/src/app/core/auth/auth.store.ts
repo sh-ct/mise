@@ -23,11 +23,20 @@ interface AuthState {
 export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState<AuthState>({ session: null, status: 'loading' }),
-  withProps(() => ({ _repository: inject(AuthRepository) })),
+  withProps(() => {
+    let markSettled!: () => void;
+    return {
+      _repository: inject(AuthRepository),
+      _settled: new Promise<void>((resolve) => (markSettled = resolve)),
+      _markSettled: () => markSettled(),
+    };
+  }),
   withComputed(({ session }) => ({
     email: computed(() => session()?.user.email ?? ''),
   })),
-  withMethods(({ _repository }) => ({
+  withMethods(({ _repository, _settled }) => ({
+    /** Resolves once the saved session has been read; `status` is then `signed-in` or `signed-out`. */
+    whenSettled: () => _settled,
     sendCode: (email: string) => _repository.sendCode(email),
     verifyCode: (email: string, code: string) =>
       _repository.verifyCode(email, code),
@@ -38,12 +47,13 @@ export const AuthStore = signalStore(
     let unsubscribe: (() => void) | undefined;
     return {
       onInit() {
-        unsubscribe = store._repository.watchSession((session) =>
+        unsubscribe = store._repository.watchSession((session) => {
           patchState(store, {
             session,
             status: session ? 'signed-in' : 'signed-out',
-          }),
-        );
+          });
+          store._markSettled();
+        });
       },
       onDestroy() {
         unsubscribe?.();

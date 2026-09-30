@@ -74,15 +74,12 @@ import { THEMES } from '../../core/theme/themes';
         <button
           type="button"
           class="btn btn-secondary"
-          [disabled]="signingOut()"
+          [attr.aria-disabled]="signingOut() || null"
           (click)="signOut()"
         >
-          Sign out
+          {{ signingOut() ? 'Signing out…' : 'Sign out' }}
         </button>
       </div>
-      <p class="min-h-6 font-semibold text-danger" role="alert">
-        {{ signOutProblem() }}
-      </p>
     </section>
   `,
 })
@@ -90,7 +87,6 @@ export class SettingsPage {
   protected readonly theme = inject(ThemeStore);
   protected readonly auth = inject(AuthStore);
   protected readonly signingOut = signal(false);
-  protected readonly signOutProblem = signal('');
   protected readonly appearances = APPEARANCES;
   protected readonly themes = THEMES;
 
@@ -105,10 +101,8 @@ export class SettingsPage {
 
   /** The shell sends the user to sign-in once the session ends. */
   protected async signOut(): Promise<void> {
+    if (this.signingOut()) return;
     this.signingOut.set(true);
-    this.signOutProblem.set('');
-    const result = await this.auth.signOut();
-    this.signingOut.set(false);
-    if (!result.ok) this.signOutProblem.set('Couldn’t sign out. Try again.');
+    await this.auth.signOut();
   }
 }

@@ -45,10 +45,23 @@ describe('AuthRepository', () => {
   it.each([
     [apiError(429, 'over_email_send_rate_limit'), 'rate-limited'],
     [apiError(403, 'otp_expired'), 'invalid-code'],
+    [apiError(400, 'validation_failed'), 'invalid-code'],
     [new AuthRetryableFetchError('offline', 0), 'network'],
-  ])('maps %s to %s', async (error, reason) => {
+  ])('maps a verify error %s to %s', async (error, reason) => {
     auth.verifyOtp.mockResolvedValue({ error });
     expect(await repository().verifyCode('a@example.test', '123456')).toEqual({
+      ok: false,
+      reason,
+    });
+  });
+
+  it.each([
+    [apiError(400, 'validation_failed'), 'invalid-email'],
+    [apiError(400, 'email_address_invalid'), 'invalid-email'],
+    [apiError(429, 'over_email_send_rate_limit'), 'rate-limited'],
+  ])('maps a send error %s to %s', async (error, reason) => {
+    auth.signInWithOtp.mockResolvedValue({ error });
+    expect(await repository().sendCode('a@example.test')).toEqual({
       ok: false,
       reason,
     });
@@ -82,9 +95,11 @@ describe('AuthRepository', () => {
     });
   });
 
-  it('signs out this device only', async () => {
-    auth.signOut.mockResolvedValue({ error: null });
-    await repository().signOut();
+  it('signs out this device only, whatever the server says', async () => {
+    auth.signOut.mockResolvedValue({
+      error: new AuthRetryableFetchError('offline', 0),
+    });
+    await expect(repository().signOut()).resolves.toBeUndefined();
     expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
   });
 

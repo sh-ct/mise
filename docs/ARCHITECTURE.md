@@ -8,9 +8,9 @@
 | Frontend      | Angular (standalone, signals, zoneless), client-only SPA + `@angular/service-worker` (PWA)           |
 | UI            | Tailwind CSS + spartan/ui (headless primitives, owned component code), Angular CDK (drag-drop)       |
 | State         | NgRx SignalStore — one store per feature (library, editor draft, cook session)                       |
-| Forms         | Signal Forms if stable at scaffold time, else typed Reactive Forms; Zod for domain validation        |
+| Forms         | Angular Signal Forms (stable in Angular 22); Zod for domain validation                               |
 | Backend       | Supabase — Postgres, Auth, Storage, Edge Functions (Deno / TypeScript)                               |
-| Auth          | Email OTP code + magic link (Phase 0); Google OAuth and passkeys later                               |
+| Auth          | Email 6-digit code + sign-in link (Phase 0); Google OAuth and passkeys later                         |
 | Shared domain | `packages/core` — pure, framework-free TypeScript + Zod                                              |
 | DB types      | Generated with `supabase gen types typescript`                                                       |
 | Offline data  | IndexedDB (Dexie) behind a repository layer                                                          |
@@ -188,6 +188,9 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - Angular service worker: app shell + static assets; image `dataGroups` with a size cap.
 - Recipe data: repositories read-through to Dexie; recently opened + explicitly **pinned** recipes kept.
 - Offline edits are disabled with a clear banner. See [ADR 0003](adr/0003-offline-read.md).
+- Auth offline: if the access token has expired, supabase-js can't refresh it offline and reports no session,
+  so the app shows sign-in; the sign-in page moves on by itself once the refresh succeeds. Phase 2 must let
+  offline reading work from the stored session instead.
 
 ## Auth
 
@@ -209,6 +212,14 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - The app's Supabase URL and publishable key live in `apps/web/src/environments/` (development: the local
   stack; production: filled in once the hosted project exists).
 - Free-tier built-in email is rate-limited — configure custom SMTP (e.g. Resend free tier) before going public.
+- Known limits, to fix before going public:
+  - The UI gives unknown addresses the same reply, but GoTrue's API still answers differently (and only real
+    accounts hit the per-address resend limit), so account existence can be probed. Add captcha (Cloudflare
+    Turnstile: `captchaToken` in `signInWithOtp`, plus CSP entries) with custom SMTP; it also stops strangers
+    using up a user's email quota.
+  - Pin the CSP's `https://*.supabase.co` entries to the project's own host once it exists.
+- Never `supabase config push` from this repo: `config.toml` holds local values (localhost URLs, raised e2e
+  rate limits). Hosted auth settings are set in the dashboard.
 - Google OAuth and passkeys later.
 
 ## Security

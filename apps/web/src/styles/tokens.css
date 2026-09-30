@@ -200,6 +200,7 @@
   padding-inline: 1.25rem;
   border-radius: var(--ds-radius-control);
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition:
     background-color var(--ds-duration) var(--ds-ease),
@@ -207,6 +208,10 @@
   &:disabled {
     cursor: not-allowed;
     opacity: var(--ds-disabled-opacity);
+  }
+  /* Busy (an action in flight): stays full contrast so its "Sending…" label stays readable. */
+  &[aria-disabled='true'] {
+    cursor: progress;
   }
 }
 @utility btn-primary {

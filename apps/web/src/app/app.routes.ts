@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
-import { HOME, signedInGuard, signedOutGuard } from './core/auth/auth.guards';
+import { signedInGuard, signedOutGuard } from './core/auth/auth.guards';
+import { HOME } from './core/auth/redirect';
 
 export const appRoutes: Route[] = [
   {
@@ -21,7 +22,7 @@ export const appRoutes: Route[] = [
     loadComponent: () => import('./layout/shell').then((m) => m.Shell),
     canActivateChild: [signedInGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: HOME.slice(1) },
+      { path: '', pathMatch: 'full', redirectTo: HOME },
       {
         path: 'recipes',
         title: 'Recipes',

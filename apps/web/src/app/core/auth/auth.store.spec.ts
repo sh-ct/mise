@@ -39,6 +39,25 @@ describe('AuthStore', () => {
     expect(store.email()).toBe('b@example.test');
   });
 
+  it('settles once the saved session has been read', async () => {
+    const repository = new FakeAuthRepository('a@example.test', {
+      settled: false,
+    });
+    TestBed.configureTestingModule({
+      providers: [provideFakeAuth(repository)],
+    });
+    const store = TestBed.inject(AuthStore);
+    let settled = false;
+    void store.whenSettled().then(() => (settled = true));
+    await Promise.resolve();
+    expect(store.status()).toBe('loading');
+    expect(settled).toBe(false);
+
+    repository.settle();
+    await store.whenSettled();
+    expect(store.status()).toBe('signed-in');
+  });
+
   it('stops watching when destroyed', () => {
     const { repository, store } = setup();
     TestBed.resetTestingModule();
