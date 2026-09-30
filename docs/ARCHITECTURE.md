@@ -28,8 +28,10 @@ mise/
 ├─ apps/
 │  └─ web/                 Angular PWA
 │     └─ src/app/
-│        ├─ core/          auth, supabase client, repositories, offline cache
+│        ├─ core/          auth, supabase client, repositories, theme, offline cache
+│        ├─ layout/        signed-in shell (nav bars); signed-out pages bring their own frame
 │        ├─ features/
+│        │  ├─ auth/       sign-in (code), email-link confirm
 │        │  ├─ library/    list, search, tags, collections
 │        │  ├─ recipe/     view + editor
 │        │  ├─ cook/       cook mode, voice, timers
@@ -162,7 +164,8 @@ AI parsers (Phase 5) plug in as another `RecipeParser` implementation. See [ADR 
 - **Writes:** a Postgres function `save_recipe(draft jsonb)` (RPC) validates ownership and writes recipe,
   sections, ingredients, steps and links in **one transaction**. The client validates with Zod first; the DB
   function enforces constraints. pgTAP tests cover it.
-- Stores (NgRx SignalStore) call repositories; components never touch supabase-js directly.
+- Stores (NgRx SignalStore) call repositories; components never touch supabase-js directly. Lint enforces it:
+  only `*.repository.ts` and `core/supabase` may import supabase-js values or the `SUPABASE` client token.
 
 ### Cook mode
 
@@ -188,13 +191,23 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 ## Auth
 
-- Supabase email auth sending **both a 6-digit OTP code and a magic link**. The code matters for the installed
-  iOS PWA: magic links open in Safari, which doesn't share storage with the home-screen app.
+- Supabase email auth sending **both a 6-digit OTP code and a sign-in link**. The code matters for the installed
+  iOS PWA: links open in Safari, which doesn't share storage with the home-screen app.
+- Flow (`features/auth`): `/sign-in` sends a code (`signInWithOtp`, `shouldCreateUser: false`) and verifies it
+  (`verifyOtp`, auto-submitted on the sixth digit), then returns to the `next` page (same-origin paths only).
+  The email link goes to `/auth/confirm?token_hash=…`, which signs in only after a tap, so email scanners that
+  open links can't spend the one-time token. Unknown addresses get the same "if it has an account" reply, so the
+  form can't be used to find out who has an account.
+- `AuthStore` follows Supabase's session (including other tabs); route guards wait for the saved session to
+  load, and the signed-in shell returns to `/sign-in` whenever the session ends.
 - **Invite-only** while personal: sign-up is disabled and email confirmation required (open sign-up would let
   anyone pre-register someone else's address). Add users from the dashboard; locally, `supabase/seed.sql`
   creates `dev@mise.test` (codes arrive in Mailpit at http://127.0.0.1:54324).
 - The hosted project must get the same settings as `supabase/config.toml`: sign-up off, confirmations on,
-  the `templates/magic-link.html` email (code + link), 10-minute OTP expiry, redirect URLs.
+  the `templates/magic-link.html` email (code + link to `{{ .SiteURL }}/auth/confirm`), 10-minute OTP expiry,
+  60 s resend interval, site URL and redirect URLs. The local config raises the hourly email limit for e2e only.
+- The app's Supabase URL and publishable key live in `apps/web/src/environments/` (development: the local
+  stack; production: filled in once the hosted project exists).
 - Free-tier built-in email is rate-limited — configure custom SMTP (e.g. Resend free tier) before going public.
 - Google OAuth and passkeys later.
 
@@ -214,4 +227,6 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - Conventional commits enforced by commitlint.
 - Cloudflare Pages builds a preview per PR; merge to `main` deploys prod and CI applies Supabase migrations
   (`supabase db push`) to the prod project.
-- E2E runs in CI against a local Supabase stack, never prod.
+- E2E runs in CI against a local Supabase stack, never prod. A `setup` project signs one user in through the
+  email-link page and saves the session for the device projects; sign-in tests create their own users through
+  the admin API and read codes from Mailpit.

@@ -1,28 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { APP_NAME } from './app-name';
-import { ICONS, Icon } from './shared/ui/icon';
+import { RouterOutlet } from '@angular/router';
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: string;
-}
-
-/**
- * App shell. Mobile first: a top bar and a bottom tab bar within thumb reach, which also suits tablets.
- * From the `lg` breakpoint (desktop) navigation moves to a sidebar.
- */
+/** Root: each top-level route brings its own layout (the signed-in shell, or the bare sign-in pages). */
 @Component({
   selector: 'mise-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon],
-  templateUrl: './app.html',
+  imports: [RouterOutlet],
+  template: '<router-outlet />',
 })
-export class App {
-  protected readonly appName = APP_NAME;
-
-  protected readonly nav: NavItem[] = [
-    { path: '/recipes', label: 'Recipes', icon: ICONS.recipes },
-    { path: '/settings', label: 'Settings', icon: ICONS.settings },
-  ];
-}
+export class App {}

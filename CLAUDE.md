@@ -25,7 +25,7 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 ## Commands
 
 - `pnpm nx serve web` — dev server · `pnpm test` / `pnpm lint` / `pnpm typecheck` / `pnpm build` — all projects
-- `pnpm nx test core` — core unit tests · `pnpm nx e2e web-e2e` — Playwright (desktop, Android, iPhone, iPad, landscape phone) · `pnpm tokens` — design token check
+- `pnpm nx test core` — core unit tests · `pnpm nx e2e web-e2e` — Playwright (desktop, Android, iPhone, iPad, landscape phone; needs `pnpm db:start`) · `pnpm tokens` — design token check
 - `pnpm format` before committing.
 - Database (needs Docker): `pnpm db:start`, `pnpm db:reset` (re-applies migrations + seed), `pnpm db:test` (pgTAP), `pnpm db:types` (regenerate `packages/db-types` after any migration change).
 - pnpm blocks dependency install scripts by default: approve new ones with `pnpm approve-builds <pkg>` (recorded in `pnpm-workspace.yaml`).

@@ -1,9 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { ThemeStore } from '../../core/theme/theme.store';
+import {
+  FakeAuthRepository,
+  provideFakeAuth,
+} from '../../../testing/fake-auth';
 import { SettingsPage } from './settings-page';
 
 describe('SettingsPage', () => {
+  let repository: FakeAuthRepository;
+
   beforeEach(() => {
+    repository = new FakeAuthRepository('cook@example.test');
+    TestBed.configureTestingModule({
+      providers: [provideFakeAuth(repository)],
+    });
     localStorage.clear();
     delete document.documentElement.dataset['theme'];
     delete document.documentElement.dataset['mode'];
@@ -77,5 +87,28 @@ describe('SettingsPage', () => {
     ]);
     expect(samples).toContainEqual(['bento', 'light']);
     expect(samples).toHaveLength(5);
+  });
+
+  it('shows the account and signs out', async () => {
+    const { fixture, el } = await render();
+    expect(el.textContent).toContain('Signed in as cook@example.test');
+    const signOut = [...el.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Sign out',
+    );
+    signOut?.click();
+    await fixture.whenStable();
+    expect(repository.signOut).toHaveBeenCalled();
+  });
+
+  it('says when signing out fails', async () => {
+    const { fixture, el } = await render();
+    repository.result = { ok: false, reason: 'network' };
+    [...el.querySelectorAll('button')]
+      .find((b) => b.textContent?.trim() === 'Sign out')
+      ?.click();
+    await fixture.whenStable();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain(
+      'Couldn’t sign out',
+    );
   });
 });

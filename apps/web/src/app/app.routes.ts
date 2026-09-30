@@ -1,18 +1,42 @@
 import { Route } from '@angular/router';
+import { HOME, signedInGuard, signedOutGuard } from './core/auth/auth.guards';
 
 export const appRoutes: Route[] = [
-  { path: '', pathMatch: 'full', redirectTo: 'recipes' },
   {
-    path: 'recipes',
-    title: 'Recipes',
+    path: 'sign-in',
+    title: 'Sign in',
+    canActivate: [signedOutGuard],
     loadComponent: () =>
-      import('./features/library/library-page').then((m) => m.LibraryPage),
+      import('./features/auth/sign-in-page').then((m) => m.SignInPage),
   },
   {
-    path: 'settings',
-    title: 'Settings',
+    // Target of the link in the sign-in email (supabase/templates/magic-link.html).
+    path: 'auth/confirm',
+    title: 'Sign in',
     loadComponent: () =>
-      import('./features/settings/settings-page').then((m) => m.SettingsPage),
+      import('./features/auth/confirm-page').then((m) => m.ConfirmPage),
   },
-  { path: '**', redirectTo: 'recipes' },
+  {
+    path: '',
+    loadComponent: () => import('./layout/shell').then((m) => m.Shell),
+    canActivateChild: [signedInGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: HOME.slice(1) },
+      {
+        path: 'recipes',
+        title: 'Recipes',
+        loadComponent: () =>
+          import('./features/library/library-page').then((m) => m.LibraryPage),
+      },
+      {
+        path: 'settings',
+        title: 'Settings',
+        loadComponent: () =>
+          import('./features/settings/settings-page').then(
+            (m) => m.SettingsPage,
+          ),
+      },
+    ],
+  },
+  { path: '**', redirectTo: '' },
 ];

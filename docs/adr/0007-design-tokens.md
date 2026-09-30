@@ -11,7 +11,8 @@ Market Stall is the starting choice, but the others should stay available, and s
 
 - **Three layers.** Theme files (`apps/web/src/styles/themes/*.css`) hold every literal value as `--ds-*` custom
   properties for one theme in light and dark mode. `styles/tokens.css` maps them into Tailwind's theme and adds
-  a few token utilities (`heading`, `step-text`, `tag`, `card-edge`, `nums`). Components use only those.
+  a few token utilities (`heading`, `step-text`, `tag`, `card-edge`, `nums`, `choice`, `btn`, `field`). Components
+  use only those.
 - **Tailwind's defaults are removed** (`--color-*: initial` etc.), so palette utilities like `bg-red-500` don't
   exist; only token utilities do.
 - **Theme character is tokens too**: tag tilt, heading case and tracking, card border width, the top rule,
