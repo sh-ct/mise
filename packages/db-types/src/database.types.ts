@@ -564,6 +564,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      register_url_import: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       save_recipe: { Args: { draft: Json }; Returns: string };
     };
     Enums: {

@@ -63,3 +63,16 @@ jobs:
         run: |
           pnpm db:types
           git diff --exit-code packages/db-types
+
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check edge functions under Deno (they import packages/core directly)
+        run: |
+          for config in supabase/functions/*/deno.json; do
+            deno check --config "$config" "$(dirname "$config")/index.ts"
+          done

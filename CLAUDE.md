@@ -16,6 +16,8 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 - Every user-owned table has `owner_id` + RLS; add an RLS test with every new table.
 - Every import path produces a `RecipeDraft` that opens in the editor — never save parsed data directly.
 - Ingredients always keep `raw_text`.
+- `packages/core` relative imports end in `.ts` so edge functions can import core directly under Deno (ADR 0008).
+- Recipe text is untrusted (imports): render with text bindings / `StepSegment`s, never `[innerHTML]`.
 - Voice and AI are progressive enhancements; tap navigation must always work.
 
 ## Commands
@@ -24,6 +26,7 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 - `pnpm nx test core` — core unit tests · `pnpm nx e2e web-e2e` — Playwright
 - `pnpm format` before committing.
 - Database (needs Docker): `pnpm db:start`, `pnpm db:reset` (re-applies migrations + seed), `pnpm db:test` (pgTAP), `pnpm db:types` (regenerate `packages/db-types` after any migration change).
+- Edge functions: `pnpm exec supabase functions serve` (local, needs the stack running); `pnpm nx test functions` for the shared guards.
 - pnpm blocks dependency install scripts by default: approve new ones with `pnpm approve-builds <pkg>` (recorded in `pnpm-workspace.yaml`).
 - Nx plugins/generators: always pass `--no-interactive`; if Nx hangs on Windows, run with `NX_DAEMON=false`.
 - TypeScript 6: `paths` in `tsconfig.base.json` must start with `./` (no `baseUrl`).

@@ -56,6 +56,11 @@ library, then cook from it with a focused, hands-free-friendly, step-at-a-time k
 - Google OAuth, passkeys.
 - Background timer alerts via scheduled Web Push.
 
+## Known limitations
+
+- "Juice of 1 lemon" / "zest of 2 oranges" parse without a quantity, so they don't scale. Needs a display
+  model beyond qty/unit/item (e.g. a "part of" prefix); revisit with the editor.
+
 ## Ideas parking lot
 
 - **Simplify mode** — for beginners, rewrite jargon into plain instructions ("reduce" → "simmer uncovered
@@ -69,7 +74,7 @@ Each phase ends deployed and usable.
 
 - Public GitHub repo, protected `main`, commitlint.
 - Nx + pnpm workspace; Angular app with Tailwind + spartan/ui; `packages/core`; Supabase CLI local stack.
-- Spikes: Signal Forms stability; Deno edge function importing `packages/core`.
+- Spikes: Signal Forms stability; Deno edge function importing `packages/core` (done: ADR 0008).
 - Auth (email OTP code + magic link), owner-scoped RLS pattern, first migration, first pgTAP test.
 - CI: lint, typecheck, Vitest, pgTAP, Playwright, build; Cloudflare Pages PR previews; migrations to prod on merge.
 - Installable empty PWA shell.

@@ -21,6 +21,10 @@ export default [
               onlyDependOnLibsWithTags: ['type:core', 'type:db-types'],
             },
             { sourceTag: 'type:db-types', onlyDependOnLibsWithTags: [] },
+            {
+              sourceTag: 'type:functions',
+              onlyDependOnLibsWithTags: ['type:core'],
+            },
             { sourceTag: 'type:core', onlyDependOnLibsWithTags: ['type:core'] },
           ],
         },
@@ -38,7 +42,21 @@ export default [
       '**/*.cjs',
       '**/*.mjs',
     ],
-    // Override or add rules here
-    rules: {},
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
   },
 ];
