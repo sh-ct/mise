@@ -185,7 +185,14 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 ### Offline read
 
-- Angular service worker: app shell + static assets; image `dataGroups` with a size cap.
+- Angular service worker (production builds, `apps/web/ngsw-config.json`): the app shell is prefetched, icons
+  and fonts cached on first use; image `dataGroups` with a size cap come with offline recipes. A new version
+  downloads in the background and the shell offers "Reload"; the user picks the moment (`AppUpdateStore`).
+- Installable: `public/manifest.webmanifest` plus iOS meta tags in `index.html`. Icons are rendered from
+  `apps/web/icons/icon.svg` by `node tools/make-icons.mjs`; `manifest.spec.ts` checks names, sizes and colours
+  against `APP_NAME` and the default theme.
+- Bundle: the initial load is ~740 kB raw / ~150 kB compressed, about a fifth of it supabase-js, which the
+  route guards need at startup. The warning budget is 800 kB; the error budget stays at 1 MB.
 - Recipe data: repositories read-through to Dexie; recently opened + explicitly **pinned** recipes kept.
 - Offline edits are disabled with a clear banner. See [ADR 0003](adr/0003-offline-read.md).
 - Auth offline: if the access token has expired, supabase-js can't refresh it offline and reports no session,

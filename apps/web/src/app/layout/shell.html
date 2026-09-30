@@ -48,6 +48,17 @@
       tabindex="-1"
       class="w-full max-w-3xl flex-1 pt-5 pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(var(--ds-tabbar-height)+env(safe-area-inset-bottom)+2rem)] pl-[max(1rem,env(safe-area-inset-left))] focus:outline-none md:mx-auto md:px-8 lg:mx-0 lg:px-10 lg:pt-10 lg:pb-12"
     >
+      @if (update.ready()) {
+      <div
+        role="status"
+        class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-card bg-selected px-4 py-3 text-on-selected"
+      >
+        <span>A new version of {{ appName }} is ready.</span>
+        <button type="button" class="btn btn-primary" (click)="update.reload()">
+          Reload
+        </button>
+      </div>
+      }
       <router-outlet />
     </main>
 

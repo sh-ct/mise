@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { SwUpdate, type VersionEvent } from '@angular/service-worker';
+import { Subject } from 'rxjs';
 import {
   FakeAuthRepository,
   fakeSession,
@@ -15,12 +17,23 @@ class Blank {}
 
 describe('Shell', () => {
   let repository: FakeAuthRepository;
+  let versionUpdates: Subject<VersionEvent>;
 
   async function render() {
     repository = new FakeAuthRepository('cook@example.test');
+    versionUpdates = new Subject<VersionEvent>();
     TestBed.configureTestingModule({
       providers: [
         provideFakeAuth(repository),
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: true,
+            versionUpdates,
+            unrecoverable: new Subject(),
+            checkForUpdate: async () => false,
+          },
+        },
         provideRouter([
           { path: 'sign-in', component: Blank },
           {
@@ -57,5 +70,15 @@ describe('Shell', () => {
     repository.setSession(fakeSession('cook@example.test'));
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/recipes');
+  });
+
+  it('offers a reload once a new version is ready', async () => {
+    const { harness, el } = await render();
+    expect(el.querySelector('[role="status"]')).toBeNull();
+    versionUpdates.next({ type: 'VERSION_READY' } as VersionEvent);
+    await harness.fixture.whenStable();
+    expect(el.querySelector('[role="status"]')?.textContent).toContain(
+      `A new version of ${APP_NAME} is ready.`,
+    );
   });
 });

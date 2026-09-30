@@ -10,7 +10,18 @@
     />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#fbfbf8" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="icons/favicon-32.png"
+    />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <!-- iOS home-screen app. The default status bar keeps dark text legible over the light themes. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Mise" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <!-- Blocking on purpose: sets data-theme/data-mode before the first paint. -->
     <script src="theme-boot.js"></script>
   </head>

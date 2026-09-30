@@ -7,6 +7,7 @@ import {
 } from '@angular/router';
 import { APP_NAME } from '../app-name';
 import { AuthStore } from '../core/auth/auth.store';
+import { AppUpdateStore } from '../core/pwa/app-update.store';
 import { ICONS, Icon } from '../shared/ui/icon';
 
 interface NavItem {
@@ -26,6 +27,7 @@ interface NavItem {
 })
 export class Shell {
   protected readonly appName = APP_NAME;
+  protected readonly update = inject(AppUpdateStore);
 
   protected readonly nav: NavItem[] = [
     { path: '/recipes', label: 'Recipes', icon: ICONS.recipes },

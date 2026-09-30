@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Source for every app icon (tools/make-icons.mjs). Bento theme: charcoal tray, rice, pickle, greens, umeboshi.
+       Everything sits inside the maskable safe zone (a centred circle of radius 205). -->
+  <rect width="512" height="512" fill="#1e2426"/>
+  <rect x="120" y="120" width="272" height="272" rx="40" fill="#fbfbf8"/>
+  <rect x="140" y="140" width="136" height="232" rx="24" fill="#fbe0d4"/>
+  <rect x="292" y="140" width="80" height="108" rx="20" fill="#f7eab8"/>
+  <rect x="292" y="264" width="80" height="108" rx="20" fill="#cfe6c2"/>
+  <circle cx="208" cy="256" r="30" fill="#c2334d"/>
+</svg>
