@@ -1,5 +1,5 @@
-import { detectDurations } from './durations';
-import type { GlossaryMatcher } from './glossary';
+import { detectDurations } from './durations.ts';
+import type { GlossaryMatcher } from './glossary.ts';
 
 export type StepSegment =
   | { kind: 'text'; text: string }

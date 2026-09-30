@@ -1,6 +1,6 @@
-import { convert, toSystem } from './convert';
-import { densityFor } from './density';
-import { matchUnitPrefix, parseUnit, unitLabel } from './units';
+import { convert, toSystem } from './convert.ts';
+import { densityFor } from './density.ts';
+import { matchUnitPrefix, parseUnit, unitLabel } from './units.ts';
 
 describe('matchUnitPrefix', () => {
   it.each([

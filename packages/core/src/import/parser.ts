@@ -1,7 +1,11 @@
-import type { RecipeDraft } from '../schema/recipe';
-import { htmlToText, removeElements } from './html';
-import { importRecipeFromHtml } from './jsonld';
-import { parseRecipeText } from './text';
+import {
+  allIngredients,
+  allSteps,
+  type RecipeDraft,
+} from '../schema/recipe.ts';
+import { htmlToText, removeElements } from './html.ts';
+import { importRecipeFromHtml } from './jsonld.ts';
+import { parseRecipeText } from './text.ts';
 
 export type RecipeInput =
   | { kind: 'html'; html: string; url?: string }
@@ -21,7 +25,7 @@ export interface RecipeParser {
 /**
  * Recipe web pages: schema.org JSON-LD when the page has it (most recipe sites), otherwise the page's
  * main text through the plain-text splitter. The fallback is noisy by nature; the editor review is
- * what makes it usable.
+ * what makes it usable. A page counts as a recipe only if the fallback finds both ingredients and steps.
  */
 export const htmlParser: RecipeParser = {
   name: 'html',
@@ -34,11 +38,13 @@ export const htmlParser: RecipeParser = {
     );
     if (fromJsonLd) return fromJsonLd;
     const text = htmlToText(mainContent(input.html));
-    return text
-      ? parseRecipeText(text, {
-          sourceType: 'url',
-          ...(input.url && { sourceUrl: input.url }),
-        })
+    if (!text) return undefined;
+    const draft = parseRecipeText(text, {
+      sourceType: 'url',
+      ...(input.url && { sourceUrl: input.url }),
+    });
+    return allIngredients(draft).length > 0 && allSteps(draft).length > 0
+      ? draft
       : undefined;
   },
 };

@@ -1,10 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RecipeDraftSchema, allIngredients, allSteps } from '../schema/recipe';
-import { decodeEntities, htmlToText } from './html';
-import { isoDurationToMinutes } from './iso-duration';
-import { importRecipeFromHtml } from './jsonld';
-import { htmlParser } from './parser';
+import {
+  RecipeDraftSchema,
+  allIngredients,
+  allSteps,
+} from '../schema/recipe.ts';
+import { decodeEntities, htmlToText } from './html.ts';
+import { isoDurationToMinutes } from './iso-duration.ts';
+import { importRecipeFromHtml } from './jsonld.ts';
+import { htmlParser } from './parser.ts';
 
 const fixture = (name: string) =>
   readFileSync(join(__dirname, 'fixtures', name), 'utf8');
@@ -294,6 +298,13 @@ describe('htmlParser', () => {
 
   it('does not handle text input', () => {
     expect(htmlParser.canParse({ kind: 'text', text: '' })).toBe(false);
+  });
+
+  it('finds no recipe on a page without ingredients and steps', async () => {
+    const html = `<html><body><main><h1>Example Domain</h1>
+      <p>This domain is for use in illustrative examples in documents.</p>
+      <p><a href="https://example.test">More information...</a></p></main></body></html>`;
+    expect(await htmlParser.parse({ kind: 'html', html })).toBeUndefined();
   });
 });
 

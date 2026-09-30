@@ -21,6 +21,10 @@ export default [
               onlyDependOnLibsWithTags: ['type:core', 'type:db-types'],
             },
             { sourceTag: 'type:db-types', onlyDependOnLibsWithTags: [] },
+            {
+              sourceTag: 'type:functions',
+              onlyDependOnLibsWithTags: ['type:core'],
+            },
             { sourceTag: 'type:core', onlyDependOnLibsWithTags: ['type:core'] },
           ],
         },

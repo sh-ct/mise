@@ -7,7 +7,7 @@ import {
   remainingMs,
   startTimer,
   timerState,
-} from './timers';
+} from './timers.ts';
 
 const T0 = 1_000_000;
 

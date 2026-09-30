@@ -1,4 +1,4 @@
-import type { Ingredient } from '../schema/recipe';
+import type { Ingredient } from '../schema/recipe.ts';
 
 /** Factor to go from the recipe's servings to the desired servings. 1 when either is unknown. */
 export function scaleFactor(

@@ -1,10 +1,14 @@
-import type { IdFactory } from '../ids';
-import type { RecipeDraft } from '../schema/recipe';
-import { LIST_NUMBER } from '../text/normalize';
-import { buildDraft, type RawRecipe, type RawSection } from './draft-builder';
-import { headingTitle, isSectionHeading } from './headings';
-import { cleanLine, htmlToText } from './html';
-import { isoDurationToMinutes } from './iso-duration';
+import type { IdFactory } from '../ids.ts';
+import type { RecipeDraft } from '../schema/recipe.ts';
+import { LIST_NUMBER } from '../text/normalize.ts';
+import {
+  buildDraft,
+  type RawRecipe,
+  type RawSection,
+} from './draft-builder.ts';
+import { headingTitle, isSectionHeading } from './headings.ts';
+import { cleanLine, htmlToText } from './html.ts';
+import { isoDurationToMinutes } from './iso-duration.ts';
 
 // WHATWG URL exists in browsers, Deno and Node, but `lib: es2022` has no typings for it.
 declare const URL: new (url: string, base?: string) => { href: string };

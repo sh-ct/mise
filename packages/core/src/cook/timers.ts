@@ -1,4 +1,4 @@
-import { formatDuration, type DurationMatch } from '../steps/durations';
+import { formatDuration, type DurationMatch } from '../steps/durations.ts';
 
 // Cook-mode timers (docs/ARCHITECTURE.md#cook-mode). Times are absolute epoch milliseconds (`endsAt`),
 // never "remaining" counters, so a timer stays correct when the tab is suspended, the screen locks or

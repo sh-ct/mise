@@ -4,7 +4,7 @@ import {
   formatRange,
   parseLeadingQuantity,
   parseNumber,
-} from './quantity';
+} from './quantity.ts';
 
 describe('parseNumber', () => {
   it.each([

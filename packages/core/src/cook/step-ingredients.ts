@@ -2,8 +2,8 @@ import {
   formatIngredient,
   type IngredientDisplay,
   type IngredientDisplayOptions,
-} from '../ingredients/format-ingredient';
-import type { Ingredient, Step } from '../schema/recipe';
+} from '../ingredients/format-ingredient.ts';
+import type { Ingredient, Step } from '../schema/recipe.ts';
 
 export interface StepIngredientLine extends IngredientDisplay {
   ingredientId: string;

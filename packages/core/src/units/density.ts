@@ -1,4 +1,4 @@
-import { escapeRegExp } from '../text/normalize';
+import { escapeRegExp } from '../text/normalize.ts';
 
 export interface Density {
   /** Grams per millilitre. */

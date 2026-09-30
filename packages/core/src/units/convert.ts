@@ -1,5 +1,5 @@
-import { densityFor } from './density';
-import { getUnit, type Dimension, type MeasurementSystem } from './units';
+import { densityFor } from './density.ts';
+import { getUnit, type Dimension, type MeasurementSystem } from './units.ts';
 
 /**
  * Convert a quantity between units. Mass↔volume needs a density (g/ml), e.g. from `densityFor(item)`.

@@ -1,5 +1,5 @@
-import { enrichStep } from './enrich';
-import { GlossaryMatcher, type GlossaryTerm } from './glossary';
+import { enrichStep } from './enrich.ts';
+import { GlossaryMatcher, type GlossaryTerm } from './glossary.ts';
 
 const TERMS: GlossaryTerm[] = [
   {

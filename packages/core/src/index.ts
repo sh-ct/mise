@@ -1,4 +1,4 @@
-export { newId, type IdFactory } from './ids';
+export { newId, type IdFactory } from './ids.ts';
 export {
   LIMITS,
   SourceTypeSchema,
@@ -20,7 +20,7 @@ export {
   type StepSection,
   type RecipeDraft,
   type RecipeDraftInput,
-} from './schema/recipe';
+} from './schema/recipe.ts';
 export {
   UNITS,
   getUnit,
@@ -29,48 +29,48 @@ export {
   type UnitDef,
   type Dimension,
   type MeasurementSystem,
-} from './units/units';
-export { convert, toSystem, type ConvertedQuantity } from './units/convert';
+} from './units/units.ts';
+export { convert, toSystem, type ConvertedQuantity } from './units/convert.ts';
 export {
   parseNumber,
   formatQuantity,
   formatRange,
   type QuantityStyle,
-} from './quantity/quantity';
+} from './quantity/quantity.ts';
 export {
   parseIngredientLine,
   toIngredient,
   type ParsedIngredient,
-} from './ingredients/parse-ingredient';
+} from './ingredients/parse-ingredient.ts';
 export {
   formatIngredient,
   type IngredientDisplay,
   type IngredientDisplayOptions,
-} from './ingredients/format-ingredient';
-export { detectUnitSystem } from './ingredients/unit-system';
-export { scaleFactor, scaleIngredient } from './scaling/scale';
-export { type TextSpan } from './text/normalize';
+} from './ingredients/format-ingredient.ts';
+export { detectUnitSystem } from './ingredients/unit-system.ts';
+export { scaleFactor, scaleIngredient } from './scaling/scale.ts';
+export { type TextSpan } from './text/normalize.ts';
 export {
   detectDurations,
   formatDuration,
   type DurationMatch,
-} from './steps/durations';
+} from './steps/durations.ts';
 export {
   GlossaryMatcher,
   type GlossaryTerm,
   type GlossaryMatchRules,
   type GlossaryMatch,
-} from './steps/glossary';
+} from './steps/glossary.ts';
 export {
   enrichStep,
   type StepSegment,
   type EnrichOptions,
-} from './steps/enrich';
+} from './steps/enrich.ts';
 export {
   IngredientLinker,
   linkStepIngredients,
   autoLinkDraft,
-} from './steps/link-ingredients';
+} from './steps/link-ingredients.ts';
 export {
   startTimer,
   remainingMs,
@@ -83,19 +83,19 @@ export {
   type CookTimer,
   type TimerState,
   type StartTimerOptions,
-} from './cook/timers';
+} from './cook/timers.ts';
 export {
   stepIngredientLines,
   type StepIngredientLine,
-} from './cook/step-ingredients';
+} from './cook/step-ingredients.ts';
 export {
   importRecipeFromHtml,
   type JsonLdImportOptions,
-} from './import/jsonld';
-export { parseRecipeText, type TextImportOptions } from './import/text';
+} from './import/jsonld.ts';
+export { parseRecipeText, type TextImportOptions } from './import/text.ts';
 export {
   htmlParser,
   plainTextParser,
   type RecipeParser,
   type RecipeInput,
-} from './import/parser';
+} from './import/parser.ts';

@@ -1,5 +1,5 @@
-import type { Ingredient, RecipeUnitSystem } from '../schema/recipe';
-import { getUnit } from '../units/units';
+import type { Ingredient, RecipeUnitSystem } from '../schema/recipe.ts';
+import { getUnit } from '../units/units.ts';
 
 /**
  * Guess a recipe's measurement system from its ingredients. Spoons and count units belong to neither

@@ -1,4 +1,4 @@
-import { BULLET } from '../text/normalize';
+import { BULLET } from '../text/normalize.ts';
 
 /**
  * A sub-section heading inside an ingredient list or method: "For the sauce:", "Dressing:",

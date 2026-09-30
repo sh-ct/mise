@@ -1,9 +1,9 @@
-import type { RecipeDraft } from '../schema/recipe';
+import type { RecipeDraft } from '../schema/recipe.ts';
 import {
   IngredientLinker,
   autoLinkDraft,
   linkStepIngredients,
-} from './link-ingredients';
+} from './link-ingredients.ts';
 
 const ings = (...items: string[]) =>
   items.map((item, i) => ({ id: `i${i}`, item }));

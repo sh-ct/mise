@@ -1,6 +1,10 @@
-import { RecipeDraftSchema, allIngredients, allSteps } from '../schema/recipe';
-import { plainTextParser } from './parser';
-import { parseRecipeText } from './text';
+import {
+  RecipeDraftSchema,
+  allIngredients,
+  allSteps,
+} from '../schema/recipe.ts';
+import { plainTextParser } from './parser.ts';
+import { parseRecipeText } from './text.ts';
 
 let n = 0;
 const ids = () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`;

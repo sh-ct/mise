@@ -1,6 +1,6 @@
-import type { Ingredient } from '../schema/recipe';
-import { formatIngredient } from './format-ingredient';
-import { detectUnitSystem } from './unit-system';
+import type { Ingredient } from '../schema/recipe.ts';
+import { formatIngredient } from './format-ingredient.ts';
+import { detectUnitSystem } from './unit-system.ts';
 
 const ing = (partial: Partial<Ingredient>): Ingredient => ({
   id: '00000000-0000-4000-8000-000000000000',

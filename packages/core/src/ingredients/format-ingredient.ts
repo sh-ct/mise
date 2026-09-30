@@ -1,8 +1,8 @@
-import { displayedValue, formatRange } from '../quantity/quantity';
-import { scaleIngredient } from '../scaling/scale';
-import type { Ingredient } from '../schema/recipe';
-import { toSystem } from '../units/convert';
-import { getUnit, unitLabel, type MeasurementSystem } from '../units/units';
+import { displayedValue, formatRange } from '../quantity/quantity.ts';
+import { scaleIngredient } from '../scaling/scale.ts';
+import type { Ingredient } from '../schema/recipe.ts';
+import { toSystem } from '../units/convert.ts';
+import { getUnit, unitLabel, type MeasurementSystem } from '../units/units.ts';
 
 export interface IngredientDisplayOptions {
   /** Serving scale factor (see `scaleFactor`). */

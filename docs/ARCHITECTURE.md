@@ -206,7 +206,7 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - RLS on every table; pgTAP tests assert user A cannot read or write user B's rows.
 - Storage buckets use owner-prefixed paths (`{owner_id}/…`) with matching storage policies.
 - Recipe text from imports is untrusted: render it with text bindings or `StepSegment`s, never `[innerHTML]`.
-- The URL-import edge function (not built yet) must:
+- The URL-import edge function (`supabase/functions/import-url`, guards in `_shared/url-guard.ts`) does:
   - require a user JWT and rate-limit per user, so it can't be used as an open proxy;
   - allow http(s) on ports 80/443 only, no credentials in the URL; resolve DNS and block loopback, private,
     link-local, metadata, IPv6 ULA and IPv4-mapped addresses; follow redirects manually, re-checking each hop;
@@ -214,7 +214,9 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
   - pass the final post-redirect URL as `sourceUrl` (not the page's own claim), wrap parsing in a time budget,
     and return only the validated draft;
   - treat `heroImageUrl` as attacker-chosen: the client uploads it through the same guarded fetch, never
-    hotlinks it (which would leak the user's IP to the page owner).
+    hotlinks it (which would leak the user's IP to the page owner). An image-fetching function is still to do.
+  - Residual risk: the runtime can't pin the resolved address, so DNS rebinding between the check and the
+    fetch is narrowed (every redirect hop is re-checked) but not eliminated.
 - `packages/core` importers are linear-time on hostile input and clip everything to `LIMITS`, so the
   function's own caps are defence in depth.
 - No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in

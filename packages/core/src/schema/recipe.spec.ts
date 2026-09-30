@@ -1,4 +1,4 @@
-import { RecipeDraftSchema, type RecipeDraftInput } from './recipe';
+import { RecipeDraftSchema, type RecipeDraftInput } from './recipe.ts';
 
 const ID = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;

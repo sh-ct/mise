@@ -3,9 +3,9 @@ import {
   type Ingredient,
   type RecipeDraft,
   type Step,
-} from '../schema/recipe';
-import { singular, words } from '../text/normalize';
-import { UNITS } from '../units/units';
+} from '../schema/recipe.ts';
+import { singular, words } from '../text/normalize.ts';
+import { UNITS } from '../units/units.ts';
 
 // Words that describe an ingredient rather than name it, stripped before matching step text.
 // Count units ("clove", "tin") are included because "2 garlic cloves" is about garlic.

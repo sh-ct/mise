@@ -20,7 +20,9 @@
     "paths": {
       "@mise/core": ["./packages/core/src/index.ts"],
       "@mise/db-types": ["./packages/db-types/src/index.ts"]
-    }
+    },
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   },
   "exclude": ["node_modules", "tmp"]
 }

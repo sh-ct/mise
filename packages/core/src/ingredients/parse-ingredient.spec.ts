@@ -2,7 +2,7 @@ import {
   looksLikeIngredient,
   parseIngredientLine,
   toIngredient,
-} from './parse-ingredient';
+} from './parse-ingredient.ts';
 
 describe('parseIngredientLine', () => {
   it.each([
@@ -59,6 +59,7 @@ describe('parseIngredientLine', () => {
       { item: 'Fresh coriander', prepNote: 'to serve' },
     ],
     ['Olive oil for frying', { item: 'Olive oil', prepNote: 'for frying' }],
+    ['lemon wedges to serve', { item: 'lemon wedges', prepNote: 'to serve' }],
     [
       '1 tbsp sugar (optional)',
       { qtyMin: 1, unit: 'tbsp', item: 'sugar', optional: true },

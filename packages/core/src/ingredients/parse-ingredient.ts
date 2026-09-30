@@ -1,9 +1,9 @@
-import { newId, type IdFactory } from '../ids';
-import { parseLeadingQuantity } from '../quantity/quantity';
-import type { Ingredient } from '../schema/recipe';
-import { BULLET, LIST_NUMBER } from '../text/normalize';
-import { convert } from '../units/convert';
-import { matchUnitPrefix } from '../units/units';
+import { newId, type IdFactory } from '../ids.ts';
+import { parseLeadingQuantity } from '../quantity/quantity.ts';
+import type { Ingredient } from '../schema/recipe.ts';
+import { BULLET, LIST_NUMBER } from '../text/normalize.ts';
+import { convert } from '../units/convert.ts';
+import { matchUnitPrefix } from '../units/units.ts';
 
 export type ParsedIngredient = Omit<Ingredient, 'id'>;
 
@@ -12,7 +12,7 @@ const SIZE_BEFORE_UNIT =
   /^(small|medium|large|big|heaped|heaping|level|rounded|generous|scant|good)\s+/i;
 const MULTIPLIER = /^[x×]\s*/i;
 const TO_TASTE =
-  /,?\s*\b(to taste|as needed|as required|for (?:serving|garnish|dusting|greasing|frying|brushing)[^,]*)\s*$/i;
+  /,?\s*\b(to taste|as needed|as required|to (?:serve|garnish|decorate)|for (?:serving|garnish|dusting|greasing|frying|brushing)[^,]*)\s*$/i;
 
 /**
  * Parse a single ingredient line into structured parts. Never throws: anything that can't be understood

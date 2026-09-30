@@ -3,7 +3,7 @@ import {
   overlaps,
   words,
   type TextSpan,
-} from '../text/normalize';
+} from '../text/normalize.ts';
 
 export interface GlossaryMatchRules {
   /** Only match if one of these words appears within `window` words after the term. */

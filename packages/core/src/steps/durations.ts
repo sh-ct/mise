@@ -3,9 +3,9 @@ import {
   NUMBER_WORDS,
   RANGE_SEPARATOR_PATTERN,
   parseNumber,
-} from '../quantity/quantity';
-import { overlaps, type TextSpan } from '../text/normalize';
-import { matchUnitPrefix } from '../units/units';
+} from '../quantity/quantity.ts';
+import { overlaps, type TextSpan } from '../text/normalize.ts';
+import { matchUnitPrefix } from '../units/units.ts';
 
 export interface DurationMatch extends TextSpan {
   /** Lower bound in seconds. Timers start here (ADR 0005). */

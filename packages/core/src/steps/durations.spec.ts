@@ -1,4 +1,4 @@
-import { detectDurations, formatDuration } from './durations';
+import { detectDurations, formatDuration } from './durations.ts';
 
 const find = (text: string) =>
   detectDurations(text).map(({ text: t, minSeconds, maxSeconds }) => [

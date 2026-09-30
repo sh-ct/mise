@@ -1,13 +1,13 @@
-import { newId, type IdFactory } from '../ids';
-import { toIngredient } from '../ingredients/parse-ingredient';
-import { detectUnitSystem } from '../ingredients/unit-system';
+import { newId, type IdFactory } from '../ids.ts';
+import { toIngredient } from '../ingredients/parse-ingredient.ts';
+import { detectUnitSystem } from '../ingredients/unit-system.ts';
 import {
   LIMITS,
   allIngredients,
   type RecipeDraft,
   type SourceType,
-} from '../schema/recipe';
-import { autoLinkDraft } from '../steps/link-ingredients';
+} from '../schema/recipe.ts';
+import { autoLinkDraft } from '../steps/link-ingredients.ts';
 
 export interface RawSection {
   title?: string;

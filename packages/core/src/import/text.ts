@@ -1,11 +1,15 @@
-import type { IdFactory } from '../ids';
-import { looksLikeIngredient } from '../ingredients/parse-ingredient';
-import { parseLeadingQuantity } from '../quantity/quantity';
-import type { RecipeDraft, SourceType } from '../schema/recipe';
-import { detectDurations } from '../steps/durations';
-import { BULLET, LIST_NUMBER } from '../text/normalize';
-import { buildDraft, type RawRecipe, type RawSection } from './draft-builder';
-import { headingTitle, isSectionHeading } from './headings';
+import type { IdFactory } from '../ids.ts';
+import { looksLikeIngredient } from '../ingredients/parse-ingredient.ts';
+import { parseLeadingQuantity } from '../quantity/quantity.ts';
+import type { RecipeDraft, SourceType } from '../schema/recipe.ts';
+import { detectDurations } from '../steps/durations.ts';
+import { BULLET, LIST_NUMBER } from '../text/normalize.ts';
+import {
+  buildDraft,
+  type RawRecipe,
+  type RawSection,
+} from './draft-builder.ts';
+import { headingTitle, isSectionHeading } from './headings.ts';
 
 const INGREDIENT_HEADER =
   /^(?:ingredients?|you(?:'ll| will)? need|what you(?:'ll)? need|shopping list)\s*:?\s*$/i;

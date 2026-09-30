@@ -1,4 +1,4 @@
-import { scaleFactor, scaleIngredient } from './scale';
+import { scaleFactor, scaleIngredient } from './scale.ts';
 
 describe('scaling', () => {
   it('computes the factor, defaulting to 1 when servings are unknown', () => {

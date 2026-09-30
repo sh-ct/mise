@@ -1,5 +1,5 @@
-import type { Ingredient } from '../schema/recipe';
-import { stepIngredientLines } from './step-ingredients';
+import type { Ingredient } from '../schema/recipe.ts';
+import { stepIngredientLines } from './step-ingredients.ts';
 
 const ing = (id: string, partial: Partial<Ingredient>): Ingredient => ({
   id,
