@@ -59,6 +59,7 @@
   --ds-z-bar: 10;
   --ds-z-scrim: 20;
   --ds-z-sheet: 30;
+  --ds-z-toast: 40;
 
   /* motion */
   --ds-duration: 200ms;

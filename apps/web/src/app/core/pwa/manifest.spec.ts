@@ -1,11 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readWebFile, readWebText } from '../../../testing/workspace-file';
 import { APP_NAME } from '../../app-name';
 import { DEFAULT_THEME } from '../theme/themes';
-
-// The Angular test runner starts in the workspace root.
-const WEB = existsSync('apps/web') ? 'apps/web' : '.';
-const read = (path: string) => readFileSync(join(WEB, path));
 
 interface ManifestIcon {
   src: string;
@@ -15,14 +10,24 @@ interface ManifestIcon {
 
 /** Width and height from a PNG's IHDR chunk. */
 function pngSize(path: string): string {
-  const png = read(path);
+  const png = readWebFile(path);
   return `${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`;
 }
 
+/** The first `attr="…"` value in an HTML tag that contains `marker`, whatever the formatting. */
+function attrOf(
+  html: string,
+  marker: string,
+  attr: string,
+): string | undefined {
+  const tag = [...html.matchAll(/<(?:link|meta)\b[^>]*>/g)]
+    .map((m) => m[0])
+    .find((t) => t.includes(marker));
+  return tag ? new RegExp(`${attr}="([^"]*)"`).exec(tag)?.[1] : undefined;
+}
+
 describe('web app manifest', () => {
-  const manifest = JSON.parse(
-    read('public/manifest.webmanifest').toString(),
-  ) as {
+  const manifest = JSON.parse(readWebText('public/manifest.webmanifest')) as {
     name: string;
     short_name: string;
     background_color: string;
@@ -35,11 +40,16 @@ describe('web app manifest', () => {
     expect(manifest.short_name).toBe(APP_NAME);
   });
 
-  it('launches on the default theme’s canvas colour', () => {
-    const css = read(`src/styles/themes/${DEFAULT_THEME}.css`).toString();
-    const canvas = /--ds-canvas:\s*(#[0-9a-f]+)/i.exec(css)?.[1];
-    expect(manifest.background_color).toBe(canvas);
-    expect(manifest.theme_color).toBe(canvas);
+  it('launches on the icon’s tile, with the default theme’s bar colour', () => {
+    // The splash screen matches the icon for everyone, so dark-mode users don't get a white flash.
+    const tile = /<rect [^>]*fill="(#[0-9a-f]+)"/i.exec(
+      readWebText('icons/icon.svg'),
+    )?.[1];
+    expect(manifest.background_color).toBe(tile);
+    const css = readWebText(`src/styles/themes/${DEFAULT_THEME}.css`);
+    expect(manifest.theme_color).toBe(
+      /--ds-canvas:\s*(#[0-9a-f]+)/i.exec(css)?.[1],
+    );
   });
 
   it('has 192 and 512 icons plus a maskable one, each the size it claims', () => {
@@ -52,15 +62,13 @@ describe('web app manifest', () => {
     expect(manifest.icons.some((i) => i.purpose === 'maskable')).toBe(true);
   });
 
-  it('is linked from index.html with iOS home-screen icon and title', () => {
-    const html = read('src/index.html').toString();
-    expect(html).toContain(
-      '<link rel="manifest" href="manifest.webmanifest" />',
+  it('is linked from index.html with the home-screen icon and title', () => {
+    const html = readWebText('src/index.html');
+    expect(attrOf(html, 'rel="manifest"', 'href')).toBe('manifest.webmanifest');
+    expect(attrOf(html, 'apple-mobile-web-app-title', 'content')).toBe(
+      APP_NAME,
     );
-    expect(html).toContain(
-      `<meta name="apple-mobile-web-app-title" content="${APP_NAME}" />`,
-    );
-    const touchIcon = /rel="apple-touch-icon" href="([^"]+)"/.exec(html)?.[1];
+    const touchIcon = attrOf(html, 'rel="apple-touch-icon"', 'href');
     expect(pngSize(`public/${touchIcon}`)).toBe('180x180');
   });
 });

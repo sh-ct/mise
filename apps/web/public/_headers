@@ -5,3 +5,11 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+
+# The service worker's own files must always be revalidated, whatever caching is added later.
+/ngsw-worker.js
+  Cache-Control: no-cache
+/ngsw.json
+  Cache-Control: no-cache
+/safety-worker.js
+  Cache-Control: no-cache

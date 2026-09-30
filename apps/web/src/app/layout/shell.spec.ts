@@ -2,14 +2,17 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { SwUpdate, type VersionEvent } from '@angular/service-worker';
-import { Subject } from 'rxjs';
 import {
   FakeAuthRepository,
   fakeSession,
   provideFakeAuth,
 } from '../../testing/fake-auth';
+import {
+  FakeSwUpdate,
+  provideFakeSwUpdate,
+} from '../../testing/fake-sw-update';
 import { APP_NAME } from '../app-name';
+import { AppUpdateStore } from '../core/pwa/app-update.store';
 import { Shell } from './shell';
 
 @Component({ template: '' })
@@ -17,23 +20,15 @@ class Blank {}
 
 describe('Shell', () => {
   let repository: FakeAuthRepository;
-  let versionUpdates: Subject<VersionEvent>;
+  let updates: FakeSwUpdate;
 
   async function render() {
     repository = new FakeAuthRepository('cook@example.test');
-    versionUpdates = new Subject<VersionEvent>();
+    updates = new FakeSwUpdate();
     TestBed.configureTestingModule({
       providers: [
         provideFakeAuth(repository),
-        {
-          provide: SwUpdate,
-          useValue: {
-            isEnabled: true,
-            versionUpdates,
-            unrecoverable: new Subject(),
-            checkForUpdate: async () => false,
-          },
-        },
+        provideFakeSwUpdate(updates),
         provideRouter([
           { path: 'sign-in', component: Blank },
           {
@@ -47,6 +42,11 @@ describe('Shell', () => {
     const harness = await RouterTestingHarness.create('/recipes');
     return { harness, el: harness.fixture.nativeElement as HTMLElement };
   }
+
+  const button = (el: HTMLElement, text: string) =>
+    [...el.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === text,
+    );
 
   it('renders the app name, a skip link and both navigation landmarks', async () => {
     const { el } = await render();
@@ -72,13 +72,34 @@ describe('Shell', () => {
     expect(TestBed.inject(Router).url).toBe('/recipes');
   });
 
-  it('offers a reload once a new version is ready', async () => {
+  it('offers an update in a status region that is there before it fills', async () => {
     const { harness, el } = await render();
-    expect(el.querySelector('[role="status"]')).toBeNull();
-    versionUpdates.next({ type: 'VERSION_READY' } as VersionEvent);
+    const status = el.querySelector('[role="status"]');
+    expect(status?.textContent?.trim()).toBe('');
+
+    updates.versionReady();
     await harness.fixture.whenStable();
-    expect(el.querySelector('[role="status"]')?.textContent).toContain(
+    expect(el.querySelector('[role="status"]')).toBe(status);
+    expect(status?.textContent).toContain(
       `A new version of ${APP_NAME} is ready.`,
     );
+  });
+
+  it('updates now, or later', async () => {
+    const { harness, el } = await render();
+    const store = TestBed.inject(AppUpdateStore);
+    const reload = vi
+      .spyOn(store, 'reload')
+      .mockImplementation(() => undefined);
+    updates.versionReady();
+    await harness.fixture.whenStable();
+
+    button(el, 'Update now')?.click();
+    expect(reload).toHaveBeenCalled();
+
+    button(el, 'Later')?.click();
+    await harness.fixture.whenStable();
+    expect(button(el, 'Update now')).toBeUndefined();
+    expect(el.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
   });
 });

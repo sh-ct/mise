@@ -102,6 +102,18 @@
       "options": {
         "command": "node tools/check-tokens.mjs apps/web/src/app"
       }
+    },
+    "icons": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/icons/icon.svg",
+        "{workspaceRoot}/tools/make-icons.mjs"
+      ],
+      "outputs": ["{projectRoot}/public/icons"],
+      "options": {
+        "command": "node tools/make-icons.mjs"
+      }
     }
   }
 }

@@ -18,7 +18,8 @@
     />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <!-- iOS home-screen app. The default status bar keeps dark text legible over the light themes. -->
+    <!-- Home-screen app (iOS reads the apple-* tags). iOS's default status bar follows the device's light/dark
+         setting, not the app's, but keeps its text legible; the app's own top padding isn't needed under it. -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Mise" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />

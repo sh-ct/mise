@@ -1,10 +1,11 @@
 import { DOCUMENT } from '@angular/common';
-import { inject } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SwUpdate } from '@angular/service-worker';
 import {
   patchState,
   signalStore,
+  withComputed,
   withHooks,
   withMethods,
   withProps,
@@ -12,25 +13,39 @@ import {
 } from '@ngrx/signals';
 import { filter } from 'rxjs';
 
+/** Foreground checks for a new version are at most this often. */
+export const CHECK_INTERVAL_MS = 10 * 60_000;
+
+/** sessionStorage key: set when the app has reloaded to recover from a broken cache. */
+const RECOVERED = 'app-update-recovered';
+
 /**
- * New app versions from the service worker. The worker downloads a new version in the background; `ready`
- * says it's waiting, and the user chooses when to reload (never mid-task). An installed app can stay open for
- * days, so it also checks whenever it comes back to the foreground.
+ * New app versions from the service worker. The worker downloads a new version in the background; `offer` says
+ * it's waiting, and the user chooses when to update (never mid-task) or puts it off until the next launch. An
+ * installed app can stay open for days, so it also checks when it comes back to the foreground. Started at boot,
+ * so no event is missed on the signed-out pages.
  */
 export const AppUpdateStore = signalStore(
   { providedIn: 'root' },
-  withState({ ready: false }),
+  withState({ ready: false, dismissed: false }),
   withProps(() => ({
     _updates: inject(SwUpdate),
     _document: inject(DOCUMENT),
   })),
-  withMethods(({ _document }) => ({
-    reload: () => _document.location.reload(),
+  withComputed(({ ready, dismissed }) => ({
+    offer: computed(() => ready() && !dismissed()),
+  })),
+  withMethods((store) => ({
+    reload: () => store._document.location.reload(),
+    later: () => patchState(store, { dismissed: true }),
   })),
   withHooks((store) => {
+    let lastCheck = Date.now();
     const onVisible = () => {
-      if (store._document.visibilityState === 'visible')
-        store._updates.checkForUpdate().catch(() => undefined); // offline: try next time
+      if (store._document.visibilityState !== 'visible') return;
+      if (Date.now() - lastCheck < CHECK_INTERVAL_MS) return;
+      lastCheck = Date.now();
+      store._updates.checkForUpdate().catch(() => undefined); // offline: try next time
     };
     return {
       onInit() {
@@ -41,10 +56,19 @@ export const AppUpdateStore = signalStore(
             takeUntilDestroyed(),
           )
           .subscribe(() => patchState(store, { ready: true }));
-        // The cached version is broken beyond repair (e.g. evicted files): only a reload recovers.
+        // The cached version is broken beyond repair (e.g. evicted files): a reload recovers. Only once per
+        // session, so a cache that keeps failing offers the update instead of looping.
         store._updates.unrecoverable
           .pipe(takeUntilDestroyed())
-          .subscribe(() => store.reload());
+          .subscribe(() => {
+            const session = sessionStorageOf(store._document);
+            if (session?.getItem(RECOVERED)) {
+              patchState(store, { ready: true, dismissed: false });
+              return;
+            }
+            session?.setItem(RECOVERED, '1');
+            store.reload();
+          });
         store._document.addEventListener('visibilitychange', onVisible);
       },
       onDestroy() {
@@ -53,3 +77,11 @@ export const AppUpdateStore = signalStore(
     };
   }),
 );
+
+function sessionStorageOf(document: Document): Storage | undefined {
+  try {
+    return document.defaultView?.sessionStorage ?? undefined;
+  } catch {
+    return undefined; // site data blocked
+  }
+}
