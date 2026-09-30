@@ -252,8 +252,8 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 - PR per feature into protected `main`; required checks: lint, typecheck, unit, pgTAP, e2e, build.
 - Conventional commits enforced by commitlint.
-- Cloudflare Pages builds a preview per PR; merge to `main` deploys prod and CI applies Supabase migrations
-  (`supabase db push`) to the prod project.
+- Cloudflare Pages builds a preview per PR; merge to `main` deploys prod, and `deploy-db.yml` applies new
+  Supabase migrations (`supabase db push`) to the prod project. One-time hosted setup: [SETUP](SETUP.md).
 - E2E runs in CI against a local Supabase stack, never prod. A `setup` project signs one user in through the
   email-link page and saves the session for the device projects; sign-in tests create their own users through
   the admin API and read codes from Mailpit.
