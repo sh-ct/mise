@@ -59,46 +59,67 @@ confirm the Deno import setup.
 
 ## Data model
 
-All user-owned rows carry `owner_id uuid references auth.users` and RLS `owner_id = auth.uid()`.
+All user-owned rows carry `owner_id` and RLS `owner_id = auth.uid()`. Child tables (sections, ingredients,
+steps, links, tags, collection entries) repeat `owner_id` and reference their parent by `(id, owner_id)`, so a
+child can never belong to a different user than its parent and every policy is a plain column comparison.
+Ingredients and steps also reference their section by `(section_id, recipe_id, kind)`, and step↔ingredient
+links by `(…, recipe_id)`, so cross-recipe or wrong-kind references are rejected by the database.
+Schema: `supabase/migrations`; tests: `supabase/tests/database` (pgTAP).
 
 ```
 recipe
-  id, owner_id, title, description,
+  id (client-generated), owner_id, title, description,
   servings numeric, yield_text,
-  prep_min, cook_min, total_min,
+  prep_minutes, cook_minutes, total_minutes,
   source_type  (manual | url | text | scan | ai),
   source_url, source_attribution,
   unit_system  (metric | us | mixed),
-  hero_image_path,
+  hero_image_path,                              -- must start with {owner_id}/
   visibility   (private | unlisted | public)   -- private only until Phase 6
   search tsvector                               -- title, description, ingredient items, tags
-  created_at, updated_at
+  created_at, updated_at                        -- set by trigger, never by clients
 
-recipe_section        id, recipe_id, kind (ingredients | steps), title, position
-ingredient            id, recipe_id, section_id?, position,
+recipe_section        id, owner_id, recipe_id, kind (ingredients | steps), title?, position
+ingredient            id, owner_id, recipe_id, section_id, section_kind, position,
                       qty_min numeric?, qty_max numeric?,   -- ranges: "2–3 cloves"
                       unit text?,                            -- canonical code from core/units
-                      item text, prep_note text?,            -- "onion", "finely diced"
-                      optional bool, raw_text text,          -- original line, never lost
-                      canonical_ingredient_id?               -- later: shopping list merge
-step                  id, recipe_id, section_id?, position, text (plain prose), image_path?,
+                      item text, prep_note text?, note text?, -- "onion", "finely diced", "14 oz can"
+                      optional bool, raw_text text           -- original line, never lost
+step                  id, owner_id, recipe_id, section_id, section_kind, position,
+                      text (plain prose), image_path?,
                       glossary_suppress text[]               -- slugs NOT to link in this step
-step_ingredient       step_id, ingredient_id, amount_fraction numeric default 1
-source_asset          id, recipe_id, storage_path, kind (scan | photo), ocr_text?
-tag                   id, owner_id, kind (cuisine | course | diet | custom), name
-recipe_tag            recipe_id, tag_id
-collection            id, owner_id, name, description, cover_image_path?
-collection_recipe     collection_id, recipe_id, position
+step_ingredient       owner_id, recipe_id, step_id, ingredient_id, amount_fraction numeric default 1
+source_asset          id, owner_id, recipe_id, storage_path, kind (scan | photo), ocr_text?
+tag                   id, owner_id, kind (cuisine | course | diet | custom), name   -- unique per owner, case-insensitive
+recipe_tag            owner_id, recipe_id, tag_id
+collection            id, owner_id, name, description?, cover_image_path?
+collection_recipe     owner_id, collection_id, recipe_id, position
 user_recipe_meta      user_id, recipe_id, rating, favourite, notes   -- per user, survives going public
 cook_log              id, user_id, recipe_id, cooked_at, notes
 glossary_term         id, slug, term, aliases text[], definition,
-                      match_rules jsonb,          -- { requireNear?: string[], excludeNear?: string[] }
+                      match_rules jsonb,          -- { requireNear?, excludeNear?, window? } (core GlossaryMatchRules)
                       plain_phrasing text?        -- future "simplify" mode
                       -- global, curated by us, read-only to users
+
+Not yet: canonical_ingredient_id on ingredient (shopping-list merging, later phase).
 ```
 
 Search: trigger-maintained `recipe.search` (ingredients live in another table, so a generated column won't
-do), GIN index; add `pg_trgm` for fuzzy title matching.
+do), GIN index, plus `pg_trgm` for fuzzy title matching. Statement-level triggers on `ingredient`,
+`recipe_tag` and `tag` re-index affected recipes; a re-index alone doesn't bump `updated_at`, so tagging
+doesn't reorder "recently updated".
+
+Size limits (text lengths, counts, servings, minutes) are check constraints that mirror `LIMITS` in
+`packages/core/src/schema/recipe.ts`, so a draft that validates in the editor always saves.
+
+Internal SQL helpers live in a `private` schema, which PostgREST doesn't expose. API roles have no TRUNCATE,
+and `anon` can only read the glossary (including for tables created later, via default privileges).
+
+`save_recipe` replaces sections, ingredients, steps and links wholesale, so **nothing may hold foreign keys to
+ingredient or step ids** — a future shopping list or cook-progress record stores its own copy. Copying a
+recipe (e.g. from a shared one) must generate new ids, since child ids are globally unique.
+
+Tags are embedded through the junction: `recipe?select=*,recipe_tag(tag(name))`.
 
 Images: stored under `{owner_id}/{recipe_id}/{uuid}` with `-400.webp` and `-1600.webp` variants generated in
 the browser before upload; `*_image_path` columns store the base key. Original scans are kept as compressed JPEG.
@@ -169,6 +190,11 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 - Supabase email auth sending **both a 6-digit OTP code and a magic link**. The code matters for the installed
   iOS PWA: magic links open in Safari, which doesn't share storage with the home-screen app.
+- **Invite-only** while personal: sign-up is disabled and email confirmation required (open sign-up would let
+  anyone pre-register someone else's address). Add users from the dashboard; locally, `supabase/seed.sql`
+  creates `dev@mise.test` (codes arrive in Mailpit at http://127.0.0.1:54324).
+- The hosted project must get the same settings as `supabase/config.toml`: sign-up off, confirmations on,
+  the `templates/magic-link.html` email (code + link), 10-minute OTP expiry, redirect URLs.
 - Free-tier built-in email is rate-limited — configure custom SMTP (e.g. Resend free tier) before going public.
 - Google OAuth and passkeys later.
 
