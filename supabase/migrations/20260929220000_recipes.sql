@@ -389,13 +389,17 @@ create policy cook_log_owner on public.cook_log for all to authenticated
 alter table public.glossary_term enable row level security;
 create policy glossary_term_read on public.glossary_term for select to anon, authenticated using (true);
 
--- Supabase's default grants give anon and authenticated every privilege on public tables, with RLS as
--- the gate. Narrow them: anon only reads the glossary; nobody but the owner role can TRUNCATE (which
--- bypasses RLS), and tables created later start closed to anon.
-revoke all on all tables in schema public from anon;
-grant select on public.glossary_term to anon;
-revoke truncate, references, trigger on all tables in schema public from authenticated;
-revoke insert, update, delete on public.glossary_term from authenticated;
+-- Explicit grants, RLS then gates rows. Newer Supabase projects don't expose public tables to the API roles
+-- by default (config.toml matches with auto_expose_new_tables = false), and on older ones the defaults are
+-- too broad, so start from nothing either way. Signed-in users read and write their own data; everyone reads
+-- the glossary; nobody but the owner role can TRUNCATE (which bypasses RLS). New tables grant their own.
+revoke all on all tables in schema public from anon, authenticated;
+grant select, insert, update, delete on
+  public.recipe, public.recipe_section, public.ingredient, public.step, public.step_ingredient,
+  public.source_asset, public.tag, public.recipe_tag, public.collection, public.collection_recipe,
+  public.user_recipe_meta, public.cook_log
+  to authenticated;
+grant select on public.glossary_term to anon, authenticated;
 alter default privileges for role postgres in schema public revoke all on tables from anon;
 alter default privileges for role postgres in schema public revoke all on sequences from anon;
 alter default privileges for role postgres in schema public revoke execute on functions from anon, public;
