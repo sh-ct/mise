@@ -258,6 +258,9 @@ importers:
       '@ngrx/signals':
         specifier: ^22.0.1
         version: 22.0.1(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@supabase/supabase-js':
+        specifier: ^2.117.2
+        version: 2.117.2
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -273,7 +276,7 @@ importers:
         version: 22.1.9(chokidar@5.0.0)
       '@angular/build':
         specifier: ~22.1.0
-        version: 22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)
+        version: 22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)
       '@angular/cli':
         specifier: ~22.1.0
         version: 22.1.9(@types/node@24.19.0)(chokidar@5.0.0)(supports-color@7.2.0)
@@ -294,7 +297,7 @@ importers:
         version: 9.39.5
       '@nx/angular':
         specifier: 23.2.0
-        version: 23.2.0(dd86df305aee6dee6defe7aaa32d165a)
+        version: 23.2.0(cb8be7ae5313b09ec0f26533a28cfe6d)
       '@nx/devkit':
         specifier: 23.2.0
         version: 23.2.0(nx@23.2.0(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)(supports-color@7.2.0)(typescript@6.0.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))
@@ -354,7 +357,7 @@ importers:
         version: 9.1.7
       jsdom:
         specifier: ^27.1.0
-        version: 27.4.0(supports-color@7.2.0)
+        version: 27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0)
       nx:
         specifier: 23.2.0
         version: 23.2.0(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)(supports-color@7.2.0)(typescript@6.0.3))(@swc/core@1.15.8(@swc/helpers@0.5.18))
@@ -364,6 +367,9 @@ importers:
       prettier:
         specifier: ^3.8.1
         version: 3.9.9
+      supabase:
+        specifier: ^2.118.0
+        version: 2.118.0
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -378,7 +384,7 @@ importers:
         version: 8.71.0(eslint@9.39.5(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       vitest:
         specifier: ^4.0.8
-        version: 4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0))
+        version: 4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0))
 
 packages:
   '@acemir/cssom@0.9.31':
@@ -1890,6 +1896,15 @@ packages:
       }
     engines: { node: '>=20.19.0' }
 
+  '@ecies/ciphers@0.2.6':
+    resolution:
+      {
+        integrity: sha512-patgsRPKGkhhoBjETV4XxD0En4ui5fbX0hzayqI3M8tvNMGUoUvmyYAIWwlxBc1KX5cturfqByYdj5bYGRpN9g==,
+      }
+    engines: { bun: '>=1', deno: '>=2.7.10', node: '>=16' }
+    peerDependencies:
+      '@noble/ciphers': ^1.0.0
+
   '@emnapi/core@1.11.1':
     resolution:
       {
@@ -2931,6 +2946,27 @@ packages:
       rxjs:
         optional: true
 
+  '@noble/ciphers@1.3.0':
+    resolution:
+      {
+        integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==,
+      }
+    engines: { node: ^14.21.3 || >=16 }
+
+  '@noble/curves@1.9.7':
+    resolution:
+      {
+        integrity: sha512-gbKGcRUYIjA3/zCCNaWDciTMFI0dCkvou3TL8Zmy5Nc7sJ47a0jtOeZoTaMxkuqRo9cRhjOdZJXegxYE5FN/xw==,
+      }
+    engines: { node: ^14.21.3 || >=16 }
+
+  '@noble/hashes@1.8.0':
+    resolution:
+      {
+        integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==,
+      }
+    engines: { node: ^14.21.3 || >=16 }
+
   '@nx/angular@23.2.0':
     resolution:
       {
@@ -3967,6 +4003,127 @@ packages:
       {
         integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==,
       }
+
+  '@supabase/auth-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-Z3WnGwrphYZubrLbxp5Iv0tLA9A5GhvKzJ/ZXglxqwd2QEH2R4dXRltjVJ8sIn4xEW2BSFIGT0yALVJIgZeDYw==,
+      }
+    engines: { node: '>=22.0.0' }
+
+  '@supabase/cli-darwin-arm64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-48W7wkHIVNgwSz4zr+xsC94la1PytCpudOw5w9qJWAISyBWRXMFBCEMb9aVIEG8S9OcLb4X1KZy4PPA/T+f7NQ==,
+      }
+    cpu: [arm64]
+    os: [darwin]
+
+  '@supabase/cli-darwin-x64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-r6z41S0ycJiy2cO6sbJA7kPCodpAus6b3Km+qyn2zYlnTLN0nbscYnKxrZf/rJNR+S+sdpOZXgdQjGc/z5jvXw==,
+      }
+    cpu: [x64]
+    os: [darwin]
+
+  '@supabase/cli-linux-arm64-musl@2.118.0':
+    resolution:
+      {
+        integrity: sha512-8yXIa+9g3FVVlnUAZ9wB1NEP6kvO0tpqQkDs3wqmb6btLD1MYosD/2/ZazSkpEHiKOwKUSymvUg0OgqI7a1gpw==,
+      }
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@supabase/cli-linux-arm64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-gYjOTnsYgwC68suoFALaXo87KvluXMjdWuo26a7hyD8vLeRJrmX+dpdxgegckQ7wxz8V1iotSBQU6Hd44FEDqw==,
+      }
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@supabase/cli-linux-x64-musl@2.118.0':
+    resolution:
+      {
+        integrity: sha512-baHVTKJ8OehCXIt6pjHFRXofoUqQzve+43lRKKeVlcgDmgHHTTaF/wTpNvQ86IhoDRkiQTuHQkDG8I5GtHdvEA==,
+      }
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@supabase/cli-linux-x64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-nHm27uv15iu4xIQZRC++CS4uKYU9HuFn9HiOf407620OQ3cCp70fLT59grFlYQ+bqM7Zrv/GmEZHdgR8UO65RA==,
+      }
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@supabase/cli-windows-arm64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-wd592HmQQ7DsGjnwDHILJfFlsRBQ8Q6wwjX5AXRmqznsj3NOPfFzZm2GtV8hJIj1Ttsf7B8N1DqW/0ta7kU4oQ==,
+      }
+    cpu: [arm64]
+    os: [win32]
+
+  '@supabase/cli-windows-x64@2.118.0':
+    resolution:
+      {
+        integrity: sha512-qVAJL532b5pB8uJAPA/+3+wtwM/DX1GxwVLCSDmiT6wfUBD6OJcCYRXCEaUx0YjupyaDoPeuP4BF7IfkQTajww==,
+      }
+    cpu: [x64]
+    os: [win32]
+
+  '@supabase/functions-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-6DT4ZIjmZxa9ANKaBIrjc86AyKrX8M376ynvNeOBBVad3eP7x3UHqWfDR2ynFkHGzCuOpr1A+kObmnahxuwuog==,
+      }
+    engines: { node: '>=22.0.0' }
+
+  '@supabase/phoenix@0.4.5':
+    resolution:
+      {
+        integrity: sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw==,
+      }
+
+  '@supabase/postgrest-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-V1Qhn+M8xzJqCasOxHZ2KG19Fj39PxU7weEAmOK65/KTsWCRXboB4hcQwFvxRvM7ZikeP9IZWNvQkfjvSxzYFw==,
+      }
+    engines: { node: '>=22.0.0' }
+
+  '@supabase/realtime-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-lYXSAIg3eAKA58riUED6Vb+TCzF8jtx18uOoiCaVJ7ZMre6FWBpwB1MPeW+B6vykJT/hPdiuqwcSB7ILMS21ew==,
+      }
+    engines: { node: '>=22.0.0' }
+
+  '@supabase/storage-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-8gAJoVaxZa/War2kFRfJMxGk4M190Q7lJ70BofwGlRxU/u9pIodd6XyTvmXkxOKXWuIYtkDaYPZrIAUt1T/7FQ==,
+      }
+    engines: { node: '>=22.0.0' }
+
+  '@supabase/supabase-js@2.117.2':
+    resolution:
+      {
+        integrity: sha512-eSG2VKnHR+Clp1PmidZ1/weJ8PJwoybjva3L2GgKqFG4YDS1Iqmc61psKGZP5xw6OMT2O7ZorPR42PY6q1BOXg==,
+      }
+    engines: { node: '>=22.0.0' }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0'
+    peerDependenciesMeta:
+      '@opentelemetry/api':
+        optional: true
 
   '@swc-node/core@1.15.0':
     resolution:
@@ -5281,6 +5438,13 @@ packages:
       }
     engines: { node: '>= 0.4' }
 
+  eciesjs@0.5.0:
+    resolution:
+      {
+        integrity: sha512-s0J9SEVYAEPg7J63GFMApLYzPH9VNIQIyC6s15JpnqVc0TqcKWdbgFlnAweEBRyMmko2dcs2sfC83Hj4J43tuA==,
+      }
+    engines: { bun: '>=1', deno: '>=2.7.10', node: '>=16' }
+
   ee-first@1.1.1:
     resolution:
       {
@@ -5996,6 +6160,13 @@ packages:
       }
     engines: { node: '>=18' }
     hasBin: true
+
+  iceberg-js@0.8.1:
+    resolution:
+      {
+        integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==,
+      }
+    engines: { node: '>=20.0.0' }
 
   iconv-lite@0.6.3:
     resolution:
@@ -7672,6 +7843,13 @@ packages:
       }
     engines: { node: '>=8' }
 
+  supabase@2.118.0:
+    resolution:
+      {
+        integrity: sha512-0aPIlzBSBLwbJZCMZKD1QAwlc4xNnNvvk07QuSuuKBKzGLSeV3GovgTLlMKFTJ4JWfJubWF0URPLuPUr0kZr5g==,
+      }
+    hasBin: true
+
   supports-color@7.2.0:
     resolution:
       {
@@ -8401,7 +8579,7 @@ snapshots:
       eslint: 9.39.5(jiti@2.6.1)(supports-color@7.2.0)
       typescript: 6.0.3
 
-  '@angular/build@22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)':
+  '@angular/build@22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.2201.9(chokidar@5.0.0)
@@ -8439,7 +8617,7 @@ snapshots:
       lmdb: 3.5.6
       postcss: 8.5.28
       tailwindcss: 4.3.3
-      vitest: 4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0))
+      vitest: 4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0))
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -9516,6 +9694,10 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.2': {}
 
+  '@ecies/ciphers@0.2.6(@noble/ciphers@1.3.0)':
+    dependencies:
+      '@noble/ciphers': 1.3.0
+
   '@emnapi/core@1.11.1':
     dependencies:
       '@emnapi/wasi-threads': 1.2.2
@@ -9680,7 +9862,9 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@exodus/bytes@1.16.0': {}
+  '@exodus/bytes@1.16.0(@noble/hashes@1.8.0)':
+    optionalDependencies:
+      '@noble/hashes': 1.8.0
 
   '@fontsource-variable/bricolage-grotesque@5.3.0': {}
 
@@ -10057,7 +10241,15 @@ snapshots:
     optionalDependencies:
       rxjs: 7.8.2
 
-  '@nx/angular@23.2.0(dd86df305aee6dee6defe7aaa32d165a)':
+  '@noble/ciphers@1.3.0': {}
+
+  '@noble/curves@1.9.7':
+    dependencies:
+      '@noble/hashes': 1.8.0
+
+  '@noble/hashes@1.8.0': {}
+
+  '@nx/angular@23.2.0(cb8be7ae5313b09ec0f26533a28cfe6d)':
     dependencies:
       '@angular-devkit/core': 22.1.9(chokidar@5.0.0)
       '@angular-devkit/schematics': 22.1.9(chokidar@5.0.0)
@@ -10076,7 +10268,7 @@ snapshots:
       semver: 7.8.5
       tslib: 2.8.1
     optionalDependencies:
-      '@angular/build': 22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)
+      '@angular/build': 22.1.9(@angular/compiler-cli@22.1.8(@angular/compiler@22.1.8)(typescript@6.0.3))(@angular/compiler@22.1.8)(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(@angular/platform-browser@22.1.8(@angular/common@22.1.8(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.8(@angular/compiler@22.1.8)(rxjs@7.8.2)))(@types/node@24.19.0)(chokidar@5.0.0)(jiti@2.6.1)(postcss@8.5.28)(supports-color@7.2.0)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@6.0.3)(vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)))(yaml@2.9.0)
       '@nx/playwright': 23.2.0(@babel/traverse@7.29.8(supports-color@7.2.0))(@playwright/test@1.63.0)(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)(supports-color@7.2.0)(typescript@6.0.3))(@swc/core@1.15.8(@swc/helpers@0.5.18))(@zkochan/js-yaml@0.0.7)(eslint@9.39.5(jiti@2.6.1)(supports-color@7.2.0))(nx@23.2.0(@swc-node/register@1.11.1(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)(supports-color@7.2.0)(typescript@6.0.3))(@swc/core@1.15.8(@swc/helpers@0.5.18)))(supports-color@7.2.0)
     transitivePeerDependencies:
       - '@babel/traverse'
@@ -10588,6 +10780,62 @@ snapshots:
   '@simple-libs/stream-utils@2.0.0': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@supabase/auth-js@2.117.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/cli-darwin-arm64@2.118.0':
+    optional: true
+
+  '@supabase/cli-darwin-x64@2.118.0':
+    optional: true
+
+  '@supabase/cli-linux-arm64-musl@2.118.0':
+    optional: true
+
+  '@supabase/cli-linux-arm64@2.118.0':
+    optional: true
+
+  '@supabase/cli-linux-x64-musl@2.118.0':
+    optional: true
+
+  '@supabase/cli-linux-x64@2.118.0':
+    optional: true
+
+  '@supabase/cli-windows-arm64@2.118.0':
+    optional: true
+
+  '@supabase/cli-windows-x64@2.118.0':
+    optional: true
+
+  '@supabase/functions-js@2.117.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/phoenix@0.4.5': {}
+
+  '@supabase/postgrest-js@2.117.2':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/realtime-js@2.117.2':
+    dependencies:
+      '@supabase/phoenix': 0.4.5
+      tslib: 2.8.1
+
+  '@supabase/storage-js@2.117.2':
+    dependencies:
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
+
+  '@supabase/supabase-js@2.117.2':
+    dependencies:
+      '@supabase/auth-js': 2.117.2
+      '@supabase/functions-js': 2.117.2
+      '@supabase/postgrest-js': 2.117.2
+      '@supabase/realtime-js': 2.117.2
+      '@supabase/storage-js': 2.117.2
 
   '@swc-node/core@1.15.0(@swc/core@1.15.8(@swc/helpers@0.5.18))(@swc/types@0.1.28)':
     dependencies:
@@ -11390,6 +11638,13 @@ snapshots:
       es-errors: 1.3.0
       gopd: 1.2.0
 
+  eciesjs@0.5.0:
+    dependencies:
+      '@ecies/ciphers': 0.2.6(@noble/ciphers@1.3.0)
+      '@noble/ciphers': 1.3.0
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
+
   ee-first@1.1.1: {}
 
   ejs@5.0.1: {}
@@ -11780,9 +12035,9 @@ snapshots:
     dependencies:
       whatwg-encoding: 2.0.0
 
-  html-encoding-sniffer@6.0.0:
+  html-encoding-sniffer@6.0.0(@noble/hashes@1.8.0):
     dependencies:
-      '@exodus/bytes': 1.16.0
+      '@exodus/bytes': 1.16.0(@noble/hashes@1.8.0)
     transitivePeerDependencies:
       - '@noble/hashes'
 
@@ -11859,6 +12114,8 @@ snapshots:
       - supports-color
 
   husky@9.1.7: {}
+
+  iceberg-js@0.8.1: {}
 
   iconv-lite@0.6.3:
     dependencies:
@@ -11955,15 +12212,15 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
-  jsdom@27.4.0(supports-color@7.2.0):
+  jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0):
     dependencies:
       '@acemir/cssom': 0.9.31
       '@asamuzakjp/dom-selector': 6.8.1
-      '@exodus/bytes': 1.16.0
+      '@exodus/bytes': 1.16.0(@noble/hashes@1.8.0)
       cssstyle: 5.3.7
       data-urls: 6.0.1
       decimal.js: 10.6.0
-      html-encoding-sniffer: 6.0.0
+      html-encoding-sniffer: 6.0.0(@noble/hashes@1.8.0)
       http-proxy-agent: 7.0.2(supports-color@7.2.0)
       https-proxy-agent: 7.0.6(supports-color@7.2.0)
       is-potential-custom-element-name: 1.0.1
@@ -12934,6 +13191,20 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
+  supabase@2.118.0:
+    dependencies:
+      eciesjs: 0.5.0
+      jose: 6.2.12
+    optionalDependencies:
+      '@supabase/cli-darwin-arm64': 2.118.0
+      '@supabase/cli-darwin-x64': 2.118.0
+      '@supabase/cli-linux-arm64': 2.118.0
+      '@supabase/cli-linux-arm64-musl': 2.118.0
+      '@supabase/cli-linux-x64': 2.118.0
+      '@supabase/cli-linux-x64-musl': 2.118.0
+      '@supabase/cli-windows-arm64': 2.118.0
+      '@supabase/cli-windows-x64': 2.118.0
+
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
@@ -13074,7 +13345,7 @@ snapshots:
       sass: 1.101.0
       yaml: 2.9.0
 
-  vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)):
+  vitest@4.1.11(@types/node@24.19.0)(jsdom@27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0))(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.1.5(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.101.0)(yaml@2.9.0))
@@ -13098,7 +13369,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.19.0
-      jsdom: 27.4.0(supports-color@7.2.0)
+      jsdom: 27.4.0(@noble/hashes@1.8.0)(supports-color@7.2.0)
     transitivePeerDependencies:
       - msw
 

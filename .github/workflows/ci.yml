@@ -41,4 +41,28 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium webkit
+      # E2E signs in against local Supabase and reads codes from Mailpit; skip services it doesn't use.
+      - name: Start Supabase for e2e
+        run: pnpm exec supabase start -x realtime,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: pnpm nx affected -t e2e
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Storage and auth are needed by the migrations; skip the rest.
+      - run: pnpm exec supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: pgTAP tests (RLS, save_recipe)
+        run: pnpm db:test
+      - name: Generated DB types are up to date
+        run: |
+          pnpm db:types
+          git diff --exit-code packages/db-types

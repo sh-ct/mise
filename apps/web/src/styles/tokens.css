@@ -190,6 +190,64 @@
   }
 }
 
+/* Buttons: `btn` plus one variant. At least 48px tall for thumbs; disabled uses the theme's opacity. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding-inline: 1.25rem;
+  border-radius: var(--ds-radius-control);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    opacity var(--ds-duration) var(--ds-ease);
+  &:disabled {
+    cursor: not-allowed;
+    opacity: var(--ds-disabled-opacity);
+  }
+  /* Busy (an action in flight): stays full contrast so its "Sending…" label stays readable. */
+  &[aria-disabled='true'] {
+    cursor: progress;
+  }
+}
+@utility btn-primary {
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+}
+@utility btn-secondary {
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+}
+/* Tertiary actions: text on the canvas, underlined so it reads as an action without a fill. */
+@utility btn-quiet {
+  background: transparent;
+  color: var(--ds-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Text inputs. 16px text stops iOS zooming in on focus. */
+@utility field {
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-radius-control);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  font-size: 1rem;
+  &[aria-invalid='true'] {
+    border-color: var(--ds-danger);
+    box-shadow: inset 0 0 0 1px var(--ds-danger);
+  }
+}
+
 @layer base {
   html {
     background: var(--ds-canvas);

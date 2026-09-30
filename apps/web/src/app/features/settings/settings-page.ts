@@ -1,4 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { AuthStore } from '../../core/auth/auth.store';
 import { APPEARANCES } from '../../core/theme/appearance';
 import { ThemeStore } from '../../core/theme/theme.store';
 import { THEMES } from '../../core/theme/themes';
@@ -63,10 +64,29 @@ import { THEMES } from '../../core/theme/themes';
         }
       </div>
     </fieldset>
+
+    <section class="mt-8 grid gap-3" aria-labelledby="account-heading">
+      <h2 id="account-heading" class="heading text-lg">Account</h2>
+      <p class="text-ink-muted">
+        Signed in as <strong class="text-ink">{{ auth.email() }}</strong>
+      </p>
+      <div>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [attr.aria-disabled]="signingOut() || null"
+          (click)="signOut()"
+        >
+          {{ signingOut() ? 'Signing out…' : 'Sign out' }}
+        </button>
+      </div>
+    </section>
   `,
 })
 export class SettingsPage {
   protected readonly theme = inject(ThemeStore);
+  protected readonly auth = inject(AuthStore);
+  protected readonly signingOut = signal(false);
   protected readonly appearances = APPEARANCES;
   protected readonly themes = THEMES;
 
@@ -78,4 +98,11 @@ export class SettingsPage {
       ? 'Dark right now.'
       : 'Light right now.';
   });
+
+  /** The shell sends the user to sign-in once the session ends. */
+  protected async signOut(): Promise<void> {
+    if (this.signingOut()) return;
+    this.signingOut.set(true);
+    await this.auth.signOut();
+  }
 }

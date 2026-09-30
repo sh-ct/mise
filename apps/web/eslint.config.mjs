@@ -27,6 +27,33 @@ export default [
     },
   },
   {
+    // component → store → repository: only repositories and the client token touch supabase-js.
+    files: ['**/*.ts'],
+    ignores: [
+      '**/app/core/**/*.repository.ts',
+      '**/app/core/**/*.repository.spec.ts',
+      '**/app/core/supabase/**',
+    ],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@supabase/*', '@supabase/*/**'],
+              allowTypeImports: true,
+              message: 'Use a repository (component → store → repository).',
+            },
+            {
+              group: ['**/supabase/supabase'],
+              message: 'Only repositories inject SUPABASE.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.html'],
     // Override or add rules here
     rules: {},

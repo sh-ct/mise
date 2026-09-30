@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
+import { AUTH_STATE } from './src/support/auth-state';
 
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
@@ -36,11 +37,20 @@ export default defineConfig({
     reuseExistingServer: true,
     cwd: workspaceRoot,
   },
+  // Needs the local Supabase stack (`pnpm db:start`): `setup` signs a user in once and the device projects
+  // reuse that session; sign-in.spec.ts starts signed out.
   projects: [
-    { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
-    { name: 'mobile-safari', use: { ...devices['iPhone 14'] } },
-    { name: 'tablet', use: { ...devices['iPad (gen 7)'] } },
-    { name: 'phone-landscape', use: { ...devices['iPhone 14 landscape'] } },
+    { name: 'setup', testMatch: /auth\.setup\.ts$/ },
+    ...[
+      { name: 'desktop-chrome', device: devices['Desktop Chrome'] },
+      { name: 'mobile-chrome', device: devices['Pixel 7'] },
+      { name: 'mobile-safari', device: devices['iPhone 14'] },
+      { name: 'tablet', device: devices['iPad (gen 7)'] },
+      { name: 'phone-landscape', device: devices['iPhone 14 landscape'] },
+    ].map(({ name, device }) => ({
+      name,
+      dependencies: ['setup'],
+      use: { ...device, storageState: AUTH_STATE },
+    })),
   ],
 });
