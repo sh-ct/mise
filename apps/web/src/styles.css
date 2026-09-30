@@ -1,4 +1,5 @@
-/* Global styles: Tailwind, the design token contract, and every theme (docs/adr/0007-design-tokens.md). */
+/* Global styles: fonts, Tailwind, every theme, and the design token contract (docs/adr/0007-design-tokens.md). */
+@import './styles/fonts.css';
 @import 'tailwindcss' source('./');
 @import './styles/themes/_base.css';
 @import './styles/themes/market-stall.css';

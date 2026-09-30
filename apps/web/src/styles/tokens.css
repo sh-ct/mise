@@ -1,11 +1,10 @@
 /*
  * Design token contract (docs/adr/0007-design-tokens.md).
  *
- *   themes/*.css  → set raw --ds-* values per theme and mode (the only place with literal values)
+ *   themes/*.css  → raw --ds-* values per theme and mode, plus shared defaults in themes/_base.css
+ *                   (the only files with literal colours, fonts, radii, shadows and layout sizes)
  *   this file     → maps --ds-* into Tailwind's theme, removes Tailwind's defaults, adds token utilities
- *   components    → use only the utilities below; no literal colours, fonts, radii or shadows
- *
- * Every theme must define every --ds-* token listed in themes/README.md, in both modes.
+ *   components    → use only the utilities below and var(--ds-*) references
  */
 
 /* Tailwind's default palette, fonts, radii and shadows are removed so only tokens can be used. */
@@ -23,12 +22,16 @@
   --color-ink: var(--ds-ink);
   --color-ink-muted: var(--ds-ink-muted);
   --color-line: var(--ds-line);
+  --color-control: var(--ds-control-border);
   --color-primary: var(--ds-primary);
   --color-on-primary: var(--ds-on-primary);
   --color-accent: var(--ds-accent);
   --color-on-accent: var(--ds-on-accent);
   --color-chip: var(--ds-chip);
   --color-on-chip: var(--ds-on-chip);
+  --color-selected: var(--ds-selected-bg);
+  --color-on-selected: var(--ds-selected-ink);
+  --color-selected-border: var(--ds-selected-border);
   --color-gloss: var(--ds-gloss);
   --color-progress: var(--ds-progress);
   --color-tray-a: var(--ds-tray-a);
@@ -38,7 +41,7 @@
   --color-danger: var(--ds-danger);
   --color-on-danger: var(--ds-on-danger);
   --color-focus: var(--ds-focus);
-  --color-rule: var(--ds-rule);
+  --color-scrim: var(--ds-scrim);
   --color-transparent: transparent;
   --color-current: currentColor;
 
@@ -54,7 +57,6 @@
   --radius-card: var(--ds-radius-card);
   --radius-sheet: var(--ds-radius-sheet);
   --radius-thumb: var(--ds-radius-thumb);
-  --radius-full: 9999px;
 
   /* depth */
   --shadow-card: var(--ds-shadow-card);
@@ -62,10 +64,10 @@
 }
 
 /*
- * spartan/ui (shadcn-style) components read these names. They alias our tokens so generated components
- * follow the active theme without edits.
+ * spartan/ui (shadcn-style) components read these names; they alias our tokens so generated components
+ * follow the active theme. Note shadcn's "accent" is a hover surface, not our timer accent.
  */
-:root {
+[data-theme] {
   --background: var(--ds-canvas);
   --foreground: var(--ds-ink);
   --card: var(--ds-surface);
@@ -81,8 +83,9 @@
   --accent: var(--ds-chip);
   --accent-foreground: var(--ds-on-chip);
   --destructive: var(--ds-danger);
+  --destructive-foreground: var(--ds-on-danger);
   --border: var(--ds-line);
-  --input: var(--ds-line);
+  --input: var(--ds-control-border);
   --ring: var(--ds-focus);
   --radius: var(--ds-radius-control);
 }
@@ -97,20 +100,30 @@
   letter-spacing: var(--ds-heading-tracking);
 }
 
-/* The step text in cook mode: the hero of the screen. `step-text-big` is the big-type setting. */
+/* A page's h1. */
+@utility page-title {
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-display-weight);
+  text-transform: var(--ds-heading-transform);
+  letter-spacing: var(--ds-heading-tracking);
+  font-size: var(--ds-title-size);
+  line-height: 1.15;
+  @media (width >= 48rem) {
+    font-size: var(--ds-title-size-wide);
+  }
+}
+
+/* Cook-mode step text: the hero of the screen. Add `step-text-big` for the big-type setting. */
 @utility step-text {
   font-family: var(--ds-font-step);
   font-variation-settings: var(--ds-font-step-settings);
   font-size: var(--ds-step-size);
   font-weight: var(--ds-step-weight);
-  line-height: 1.38;
+  line-height: var(--ds-step-leading);
 }
 @utility step-text-big {
-  font-family: var(--ds-font-step);
-  font-variation-settings: var(--ds-font-step-settings);
   font-size: calc(var(--ds-step-size) * 1.4);
-  font-weight: var(--ds-step-weight);
-  line-height: 1.28;
+  line-height: calc(var(--ds-step-leading) - 0.1);
 }
 
 /* Numbers that should line up (quantities, timers). */
@@ -142,6 +155,41 @@
   border-top: var(--ds-rule-width) solid var(--ds-rule);
 }
 
+/*
+ * A selectable option (radio/checkbox card). Uses control borders rather than card edges so settings don't
+ * pick up decorative card rules, and marks the checked state with the selected tokens. The card draws the
+ * focus ring for its input.
+ */
+@utility choice {
+  display: flex;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 1rem;
+  cursor: pointer;
+  border-radius: var(--ds-radius-card);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  transition: background-color var(--ds-duration) var(--ds-ease);
+  &:has(:checked) {
+    background: var(--ds-selected-bg);
+    color: var(--ds-selected-ink);
+    border-color: var(--ds-selected-border);
+    box-shadow: inset 0 0 0 1px var(--ds-selected-border);
+  }
+  &:has(:focus-visible) {
+    outline: var(--ds-focus-width) solid var(--ds-focus);
+    outline-offset: var(--ds-focus-offset);
+  }
+  & input {
+    flex-shrink: 0;
+    accent-color: var(--ds-primary);
+  }
+  & input:focus-visible {
+    outline: none;
+  }
+}
+
 @layer base {
   html {
     background: var(--ds-canvas);
@@ -150,8 +198,8 @@
     color-scheme: var(--ds-color-scheme);
   }
   :focus-visible {
-    outline: 3px solid var(--ds-focus);
-    outline-offset: 2px;
+    outline: var(--ds-focus-width) solid var(--ds-focus);
+    outline-offset: var(--ds-focus-offset);
   }
   @media (prefers-reduced-motion: reduce) {
     *,

@@ -1,5 +1,5 @@
 /* Enamel: blue-rimmed enamelware on a highly legible typeface. Dark is deep navy with a brighter cobalt. */
-:root[data-theme='enamel'] {
+[data-theme='enamel'] {
   --ds-canvas: #f6f8fb;
   --ds-surface: #ffffff;
   --ds-ink: #13233f;
@@ -20,7 +20,8 @@
   --ds-focus: #1f4fd8;
 
   --ds-font-display:
-    'Bricolage Grotesque', 'Atkinson Hyperlegible', system-ui, sans-serif;
+    'Bricolage Grotesque Variable', 'Atkinson Hyperlegible', system-ui,
+    sans-serif;
   --ds-font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
   --ds-font-num: 'Atkinson Hyperlegible', system-ui, sans-serif;
   --ds-font-step: 'Atkinson Hyperlegible', system-ui, sans-serif;
@@ -31,7 +32,7 @@
   --ds-card-border: #13233f;
 }
 
-:root[data-theme='enamel'][data-mode='dark'] {
+[data-theme='enamel'][data-mode='dark'] {
   --ds-canvas: #0e1726;
   --ds-surface: #16223a;
   --ds-ink: #e8eefc;

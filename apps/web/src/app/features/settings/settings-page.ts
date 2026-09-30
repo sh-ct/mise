@@ -1,65 +1,64 @@
-import { Component, inject } from '@angular/core';
-import { APPEARANCES, type Appearance } from '../../core/theme/appearance';
+import { Component, computed, inject } from '@angular/core';
+import { APPEARANCES } from '../../core/theme/appearance';
 import { ThemeStore } from '../../core/theme/theme.store';
-import { THEMES, type ThemeId } from '../../core/theme/themes';
-
-const APPEARANCE_HINTS: Record<Appearance, string> = {
-  light: 'Light all the time.',
-  dark: 'Dark all the time.',
-  time: 'Dark from 7pm to 7am.',
-  system: 'Follows your device’s light or dark setting.',
-};
+import { THEMES } from '../../core/theme/themes';
 
 @Component({
   selector: 'mise-settings-page',
   template: `
-    <h1 class="heading text-3xl md:text-4xl">Settings</h1>
+    <h1 class="page-title">Settings</h1>
 
-    <fieldset class="mt-6 grid gap-3">
-      <legend class="heading mb-3 text-lg">Appearance</legend>
-      <div class="grid gap-2 sm:grid-cols-2">
+    <fieldset class="@container mt-6 grid gap-3">
+      <legend class="mb-3"><h2 class="heading text-lg">Appearance</h2></legend>
+      <div class="grid gap-2 @lg:grid-cols-2">
         @for (option of appearances; track option.value) {
-          <label
-            class="flex min-h-14 cursor-pointer items-start gap-3 card-edge rounded-card bg-surface p-4 has-[:checked]:outline-2 has-[:checked]:outline-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-focus"
-          >
+          <label class="choice items-start">
             <input
               type="radio"
               name="appearance"
-              class="mt-1 size-4 accent-primary"
+              class="mt-1 size-4"
               [value]="option.value"
               [checked]="theme.appearance() === option.value"
               (change)="theme.setAppearance(option.value)"
             />
             <span class="grid gap-0.5">
               <span class="font-semibold">{{ option.label }}</span>
-              <span class="text-sm text-ink-muted">{{
-                hints[option.value]
-              }}</span>
+              <span class="text-sm text-ink-muted">{{ option.hint }}</span>
             </span>
           </label>
         }
       </div>
-      <p class="text-sm text-ink-muted" aria-live="polite">
-        Currently {{ theme.mode() }}.
+      <p class="min-h-5 text-sm text-ink-muted" aria-live="polite">
+        {{ status() }}
       </p>
     </fieldset>
 
-    <fieldset class="mt-8 grid gap-3">
-      <legend class="heading mb-3 text-lg">Style</legend>
-      <div class="grid gap-2 sm:grid-cols-2">
+    <fieldset class="@container mt-8 grid gap-3">
+      <legend class="mb-3"><h2 class="heading text-lg">Style</h2></legend>
+      <div class="grid gap-2 @lg:grid-cols-2">
         @for (option of themes; track option.id) {
-          <label
-            class="flex min-h-14 cursor-pointer items-center gap-3 card-edge rounded-card bg-surface p-4 has-[:checked]:outline-2 has-[:checked]:outline-primary has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-focus"
-          >
+          <label class="choice items-center">
             <input
               type="radio"
               name="theme"
-              class="size-4 accent-primary"
+              class="size-4"
               [value]="option.id"
               [checked]="theme.themeId() === option.id"
-              (change)="setTheme(option.id)"
+              (change)="theme.setTheme(option.id)"
             />
-            <span class="font-semibold">{{ option.label }}</span>
+            <span class="grow font-semibold">{{ option.label }}</span>
+            <!-- A live sample: this element renders in the option's own theme and the current mode. -->
+            <span
+              class="flex items-center gap-1.5 rounded-control border border-line bg-canvas px-2 py-1"
+              [attr.data-theme]="option.id"
+              [attr.data-mode]="theme.mode()"
+              aria-hidden="true"
+            >
+              <span class="heading text-base text-ink">Aa</span>
+              <span class="size-3.5 rounded-chip bg-primary"></span>
+              <span class="size-3.5 rounded-chip bg-accent"></span>
+              <span class="size-3.5 rounded-chip bg-chip"></span>
+            </span>
           </label>
         }
       </div>
@@ -70,9 +69,13 @@ export class SettingsPage {
   protected readonly theme = inject(ThemeStore);
   protected readonly appearances = APPEARANCES;
   protected readonly themes = THEMES;
-  protected readonly hints = APPEARANCE_HINTS;
 
-  protected setTheme(id: ThemeId): void {
-    this.theme.setTheme(id);
-  }
+  /** Only worth saying for the automatic modes, where the result isn't obvious from the choice. */
+  protected readonly status = computed(() => {
+    const appearance = this.theme.appearance();
+    if (appearance !== 'time' && appearance !== 'system') return '';
+    return this.theme.mode() === 'dark'
+      ? 'Dark right now.'
+      : 'Light right now.';
+  });
 }

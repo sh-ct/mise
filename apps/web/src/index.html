@@ -9,35 +9,10 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f4f1e6" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <script>
-      // Apply the saved theme before first paint so the page never flashes the wrong colours.
-      // Mirrors ThemeStore (app/core/theme): same storage key, same rules.
-      (function () {
-        var root = document.documentElement;
-        var prefs = {};
-        try {
-          prefs =
-            JSON.parse(localStorage.getItem('theme-preferences') || '{}') || {};
-        } catch (e) {}
-        if (
-          typeof prefs.themeId === 'string' &&
-          /^[a-z-]+$/.test(prefs.themeId)
-        )
-          root.dataset.theme = prefs.themeId;
-        var appearance = prefs.appearance || 'system';
-        var hour = new Date().getHours();
-        var dark =
-          appearance === 'dark' ||
-          (appearance === 'time' && (hour >= 19 || hour < 7)) ||
-          (appearance === 'system' &&
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches);
-        root.dataset.mode = dark ? 'dark' : 'light';
-      })();
-    </script>
+    <!-- Blocking on purpose: sets data-theme/data-mode before the first paint. -->
+    <script src="theme-boot.js"></script>
   </head>
   <body>
     <mise-root></mise-root>

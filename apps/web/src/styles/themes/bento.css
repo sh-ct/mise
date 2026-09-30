@@ -1,5 +1,5 @@
 /* Bento: soft compartments on rice white; deep warm trays on charcoal in the dark. */
-:root[data-theme='bento'] {
+[data-theme='bento'] {
   --ds-canvas: #fbfbf8;
   --ds-surface: #f2f0ea;
   --ds-ink: #1e2426;
@@ -12,7 +12,7 @@
   --ds-chip: #cfe6c2;
   --ds-on-chip: #264a1c;
   --ds-gloss: #c2334d;
-  --ds-progress: #e98b6e;
+  --ds-progress: #c85a3a;
   --ds-tray-a: #fbe0d4;
   --ds-tray-b: #f7eab8;
   --ds-on-tray-b: #6b5310;
@@ -20,9 +20,9 @@
   --ds-focus: #c2334d;
 
   --ds-font-display: 'M PLUS Rounded 1c', system-ui, sans-serif;
-  --ds-font-body: 'Nunito Sans', system-ui, sans-serif;
+  --ds-font-body: 'Nunito Sans Variable', system-ui, sans-serif;
   --ds-font-num: 'M PLUS Rounded 1c', system-ui, sans-serif;
-  --ds-font-step: 'Nunito Sans', system-ui, sans-serif;
+  --ds-font-step: 'Nunito Sans Variable', system-ui, sans-serif;
   --ds-display-weight: 800;
   --ds-step-size: 1.3125rem;
 
@@ -33,7 +33,7 @@
   --ds-card-border-width: 0px;
 }
 
-:root[data-theme='bento'][data-mode='dark'] {
+[data-theme='bento'][data-mode='dark'] {
   --ds-canvas: #16191b;
   --ds-surface: #212628;
   --ds-ink: #f2efe8;

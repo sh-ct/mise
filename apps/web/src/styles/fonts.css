@@ -1,0 +1,19 @@
+/*
+ * Self-hosted fonts for every theme (no third-party requests; works offline). Browsers only download a
+ * face when a theme actually uses it, and unicode-range limits downloads to the scripts on the page.
+ */
+@import '@fontsource-variable/rubik/wght.css';
+@import '@fontsource-variable/karla/wght.css';
+@import '@fontsource-variable/nunito-sans/wght.css';
+@import '@fontsource/m-plus-rounded-1c/500.css';
+@import '@fontsource/m-plus-rounded-1c/800.css';
+@import '@fontsource-variable/recursive/full.css';
+@import '@fontsource-variable/figtree/wght.css';
+@import '@fontsource-variable/bricolage-grotesque/wght.css';
+@import '@fontsource/atkinson-hyperlegible/400.css';
+@import '@fontsource/atkinson-hyperlegible/700.css';
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';

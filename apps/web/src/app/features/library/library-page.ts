@@ -4,9 +4,9 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'mise-library-page',
   template: `
-    <h1 class="heading text-3xl md:text-4xl">Recipes</h1>
+    <h1 class="page-title">Recipes</h1>
     <section
-      class="mt-6 grid gap-4 card-edge rounded-card bg-surface p-5 shadow-card md:p-8"
+      class="card-edge mt-6 grid gap-4 rounded-card bg-surface p-5 shadow-card md:p-8"
       aria-labelledby="empty-title"
     >
       <h2 id="empty-title" class="heading text-xl">
@@ -16,20 +16,20 @@ import { Component } from '@angular/core';
         Add recipes from a website link, pasted text, a photo of a cookbook
         page, or type your own. Then cook them one step at a time.
       </p>
-      <ul
-        class="flex flex-wrap gap-2"
-        aria-label="Ways to add recipes, coming soon"
-      >
-        @for (way of ways; track way; let odd = $odd) {
-          <li
-            class="px-3 py-1 text-sm font-semibold"
-            [class.tag]="!odd"
-            [class.tag-alt]="odd"
-          >
-            {{ way }}
-          </li>
-        }
-      </ul>
+      <div class="grid gap-2">
+        <p class="text-sm font-semibold text-ink-muted">Coming soon</p>
+        <ul class="flex flex-wrap gap-2">
+          @for (way of ways; track way; let odd = $odd) {
+            <li
+              class="px-3 py-1 text-sm font-semibold"
+              [class.tag]="!odd"
+              [class.tag-alt]="odd"
+            >
+              {{ way }}
+            </li>
+          }
+        </ul>
+      </div>
     </section>
   `,
 })

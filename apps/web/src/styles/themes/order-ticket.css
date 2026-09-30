@@ -1,5 +1,5 @@
 /* Order Ticket: a kitchen order pad. Red top rule, condensed uppercase headings, straight red timers. */
-:root[data-theme='order-ticket'] {
+[data-theme='order-ticket'] {
   --ds-canvas: #f7faf6;
   --ds-surface: #ffffff;
   --ds-ink: #1c2321;
@@ -38,7 +38,7 @@
   --ds-rule-width: 5px;
 }
 
-:root[data-theme='order-ticket'][data-mode='dark'] {
+[data-theme='order-ticket'][data-mode='dark'] {
   --ds-canvas: #151a18;
   --ds-surface: #1d2421;
   --ds-ink: #eef3ef;
@@ -53,7 +53,7 @@
   --ds-gloss: #ff5a4f;
   --ds-progress: #eef3ef;
   --ds-tray-a: #1d2421;
-  --ds-tray-b: #252e2a;
+  --ds-tray-b: #33403a;
   --ds-on-tray-b: #eef3ef;
   --ds-danger: #ff8a80;
   --ds-on-danger: #2a0605;

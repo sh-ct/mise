@@ -15,9 +15,9 @@ import {
   resolveMode,
   type Appearance,
 } from './appearance';
-import { DEFAULT_THEME, isThemeId, themeById, type ThemeId } from './themes';
+import { DEFAULT_THEME, isThemeId, type ThemeId } from './themes';
 
-/** localStorage key; also read by the pre-boot script in index.html, so keep them in sync. */
+/** localStorage key; also read by public/theme-boot.js, so keep them in sync. */
 export const THEME_STORAGE_KEY = 'theme-preferences';
 
 interface ThemeState {
@@ -54,15 +54,12 @@ function loadState(storage: Storage | undefined): ThemeState {
 }
 
 /**
- * The visual theme and light/dark appearance. Applies `data-theme` and `data-mode` to <html>, loads the
- * theme's fonts, and persists the choice. Time-based appearance re-checks every minute; device-based
- * follows `prefers-color-scheme` live.
+ * The visual theme and light/dark appearance. Applies `data-theme` and `data-mode` to <html>, keeps the
+ * browser's theme colour in step, and persists the choice. Time-based appearance is re-checked every
+ * minute and whenever the app comes back to the foreground; device-based follows `prefers-color-scheme`.
  */
 export const ThemeStore = signalStore(
   { providedIn: 'root' },
-  withState<ThemeState>(() =>
-    loadState(safeStorage(inject(DOCUMENT).defaultView)),
-  ),
   withProps(() => {
     const document = inject(DOCUMENT);
     const media = document.defaultView?.matchMedia?.(
@@ -70,16 +67,20 @@ export const ThemeStore = signalStore(
     );
     return {
       _document: document,
+      _storage: safeStorage(document.defaultView),
       _media: media,
       _systemPrefersDark: signal(media?.matches ?? false),
       _now: signal(new Date()),
     };
   }),
-  withComputed(({ appearance, _now, _systemPrefersDark, themeId }) => ({
+  withState<ThemeState>({
+    themeId: DEFAULT_THEME,
+    appearance: DEFAULT_APPEARANCE,
+  }),
+  withComputed(({ appearance, _now, _systemPrefersDark }) => ({
     mode: computed(() =>
       resolveMode(appearance(), _now(), _systemPrefersDark()),
     ),
-    theme: computed(() => themeById(themeId())),
   })),
   withMethods((store) => ({
     setTheme(themeId: ThemeId): void {
@@ -92,32 +93,32 @@ export const ThemeStore = signalStore(
   withHooks((store) => {
     const onSystemChange = (e: MediaQueryListEvent) =>
       store._systemPrefersDark.set(e.matches);
+    const tick = () => store._now.set(new Date());
+    const onVisible = () => {
+      if (store._document.visibilityState === 'visible') tick();
+    };
     let clock: ReturnType<typeof setInterval> | undefined;
 
     return {
       onInit() {
+        patchState(store, loadState(store._storage));
         store._media?.addEventListener?.('change', onSystemChange);
-        clock = setInterval(() => store._now.set(new Date()), 60_000);
+        store._document.addEventListener('visibilitychange', onVisible);
+        clock = setInterval(tick, 60_000);
 
         const doc = store._document;
         effect(() => {
-          doc.documentElement.dataset['theme'] = store.themeId();
-          doc.documentElement.dataset['mode'] = store.mode();
-        });
-
-        effect(() => {
-          const href = store.theme().fonts;
-          let link = doc.getElementById(
-            'theme-fonts',
-          ) as HTMLLinkElement | null;
-          if (!link) {
-            link = doc.createElement('link');
-            link.id = 'theme-fonts';
-            link.rel = 'stylesheet';
-            doc.head.appendChild(link);
-          }
-          if (link.getAttribute('href') !== href)
-            link.setAttribute('href', href);
+          const root = doc.documentElement;
+          root.dataset['theme'] = store.themeId();
+          root.dataset['mode'] = store.mode();
+          const canvas = doc.defaultView
+            ?.getComputedStyle(root)
+            .getPropertyValue('--ds-canvas')
+            .trim();
+          if (canvas)
+            doc
+              .querySelector('meta[name="theme-color"]')
+              ?.setAttribute('content', canvas);
         });
 
         effect(() => {
@@ -126,10 +127,7 @@ export const ThemeStore = signalStore(
             appearance: store.appearance(),
           };
           try {
-            safeStorage(doc.defaultView)?.setItem(
-              THEME_STORAGE_KEY,
-              JSON.stringify(state),
-            );
+            store._storage?.setItem(THEME_STORAGE_KEY, JSON.stringify(state));
           } catch {
             // storage full or blocked: the choice still applies for this session
           }
@@ -137,6 +135,7 @@ export const ThemeStore = signalStore(
       },
       onDestroy() {
         store._media?.removeEventListener?.('change', onSystemChange);
+        store._document.removeEventListener('visibilitychange', onVisible);
         clearInterval(clock);
       },
     };

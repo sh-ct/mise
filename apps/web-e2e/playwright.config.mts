@@ -40,5 +40,7 @@ export default defineConfig({
     { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
     { name: 'mobile-safari', use: { ...devices['iPhone 14'] } },
+    { name: 'tablet', use: { ...devices['iPad (gen 7)'] } },
+    { name: 'phone-landscape', use: { ...devices['iPhone 14 landscape'] } },
   ],
 });

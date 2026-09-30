@@ -2,11 +2,27 @@
 export type Appearance = 'light' | 'dark' | 'time' | 'system';
 export type Mode = 'light' | 'dark';
 
-export const APPEARANCES: readonly { value: Appearance; label: string }[] = [
-  { value: 'light', label: 'Always light' },
-  { value: 'dark', label: 'Always dark' },
-  { value: 'time', label: 'Auto by time of day' },
-  { value: 'system', label: 'Auto by device theme' },
+/** Evening hours for time-based appearance: dark from NIGHT_STARTS until DAY_STARTS (local time). */
+export const NIGHT_STARTS = 19;
+export const DAY_STARTS = 7;
+
+export const APPEARANCES: readonly {
+  value: Appearance;
+  label: string;
+  hint: string;
+}[] = [
+  { value: 'light', label: 'Always light', hint: 'Light all the time.' },
+  { value: 'dark', label: 'Always dark', hint: 'Dark all the time.' },
+  {
+    value: 'time',
+    label: 'Auto by time of day',
+    hint: `Dark from ${NIGHT_STARTS - 12}pm to ${DAY_STARTS}am.`,
+  },
+  {
+    value: 'system',
+    label: 'Auto by device theme',
+    hint: 'Follows your device’s light or dark setting.',
+  },
 ];
 
 export const DEFAULT_APPEARANCE: Appearance = 'system';
@@ -15,10 +31,9 @@ export function isAppearance(value: unknown): value is Appearance {
   return APPEARANCES.some((a) => a.value === value);
 }
 
-/** Dark from 19:00 until 07:00 local time. */
 export function isNightTime(date: Date): boolean {
   const hour = date.getHours();
-  return hour >= 19 || hour < 7;
+  return hour >= NIGHT_STARTS || hour < DAY_STARTS;
 }
 
 export function resolveMode(

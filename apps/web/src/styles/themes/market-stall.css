@@ -1,5 +1,5 @@
 /* Market Stall: herb green and tomato red, chunky headings, sticker tags. Dark: leaf green after hours. */
-:root[data-theme='market-stall'] {
+[data-theme='market-stall'] {
   --ds-canvas: #f4f1e6;
   --ds-surface: #fffdf5;
   --ds-ink: #1f3a26;
@@ -7,7 +7,7 @@
   --ds-line: #d9d3bd;
   --ds-primary: #2f5d3a;
   --ds-on-primary: #fffdf5;
-  --ds-accent: #d9472b;
+  --ds-accent: #c53f26;
   --ds-on-accent: #ffffff;
   --ds-chip: #dbe8c9;
   --ds-on-chip: #2c4a22;
@@ -19,10 +19,10 @@
   --ds-danger: #b3261e;
   --ds-focus: #2f5d3a;
 
-  --ds-font-display: 'Rubik', system-ui, sans-serif;
-  --ds-font-body: 'Karla', system-ui, sans-serif;
-  --ds-font-num: 'Rubik', system-ui, sans-serif;
-  --ds-font-step: 'Karla', system-ui, sans-serif;
+  --ds-font-display: 'Rubik Variable', system-ui, sans-serif;
+  --ds-font-body: 'Karla Variable', system-ui, sans-serif;
+  --ds-font-num: 'Rubik Variable', system-ui, sans-serif;
+  --ds-font-step: 'Karla Variable', system-ui, sans-serif;
   --ds-display-weight: 800;
   --ds-heading-tracking: -0.01em;
   --ds-step-size: 1.3125rem;
@@ -38,7 +38,7 @@
   --ds-shadow-card: 0 8px 22px rgb(31 58 38 / 0.12);
 }
 
-:root[data-theme='market-stall'][data-mode='dark'] {
+[data-theme='market-stall'][data-mode='dark'] {
   --ds-canvas: #14231a;
   --ds-surface: #1c3023;
   --ds-ink: #f3eedd;
