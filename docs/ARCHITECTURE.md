@@ -220,9 +220,9 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - **Invite-only** while personal: sign-up is disabled and email confirmation required (open sign-up would let
   anyone pre-register someone else's address). Add users from the dashboard; locally, `supabase/seed.sql`
   creates `dev@mise.test` (codes arrive in Mailpit at http://127.0.0.1:54324).
-- The hosted project must get the same settings as `supabase/config.toml`: sign-up off, confirmations on,
-  the `templates/magic-link.html` email (code + link to `{{ .SiteURL }}/auth/confirm`), 10-minute OTP expiry,
-  60 s resend interval, site URL and redirect URLs. The local config raises the hourly email limit for e2e only.
+- The hosted project mirrors `supabase/config.toml` (sign-up off, confirmations on, the code + link email,
+  10-minute codes, 60 s resend); the checklist is [SETUP §1](SETUP.md#1-supabase-project). The local config
+  raises some rate limits for e2e only.
 - The app's Supabase URL and publishable key live in `apps/web/src/environments/` (development: the local
   stack; production: filled in once the hosted project exists).
 - Free-tier built-in email is rate-limited — configure custom SMTP (e.g. Resend free tier) before going public.
@@ -231,7 +231,7 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
     accounts hit the per-address resend limit), so account existence can be probed. Add captcha (Cloudflare
     Turnstile: `captchaToken` in `signInWithOtp`, plus CSP entries) with custom SMTP; it also stops strangers
     using up a user's email quota.
-  - Pin the CSP's `https://*.supabase.co` entries to the project's own host once it exists.
+  - Pin the CSP's `https://*.supabase.co` entries to the project's own host ([SETUP §2](SETUP.md#2-app-configuration-a-pr-merged-before-the-first-pages-deploy)).
 - Never `supabase config push` from this repo: `config.toml` holds local values (localhost URLs, raised e2e
   rate limits). Hosted auth settings are set in the dashboard.
 - Google OAuth and passkeys later.
@@ -245,12 +245,14 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
   Cloudflare Pages. The CSP allows only same-origin scripts and fonts plus Supabase for data and images.
   Keep Cloudflare's HTML rewriting (Web Analytics auto-injection, email obfuscation, etc.) off: it would be
   blocked by the CSP and would break the service worker's hash check, so updates would never install.
-- No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in
+- No secrets in the frontend beyond the Supabase publishable key. The repo is public — secrets live only in
   GitHub Actions / Cloudflare / Supabase settings.
 
 ## Delivery
 
-- PR per feature into protected `main`; required checks: lint, typecheck, unit, pgTAP, e2e, build.
+- PR per feature into protected `main`. Required CI jobs: `main` (format, lint, typecheck, tokens, unit tests,
+  build, e2e), `database` (pgTAP, generated types up to date) and `functions` (Deno type-check); see
+  [SETUP §3](SETUP.md#3-github).
 - Conventional commits enforced by commitlint.
 - Cloudflare Pages builds a preview per PR; merge to `main` deploys prod, and `deploy-db.yml` applies new
   Supabase migrations (`supabase db push`) to the prod project. One-time hosted setup: [SETUP](SETUP.md).

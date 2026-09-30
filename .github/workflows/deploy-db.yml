@@ -1,8 +1,8 @@
 name: Deploy database
 
-# Applies new migrations to the hosted Supabase project after they reach main (docs/SETUP.md). Does nothing
-# until the project is configured: repository variable SUPABASE_PROJECT_ID, secrets SUPABASE_ACCESS_TOKEN and
-# SUPABASE_DB_PASSWORD, all in the `production` environment.
+# Applies new migrations to the hosted Supabase project after they reach main (docs/SETUP.md §3). Runs once
+# the repository variable SUPABASE_PROJECT_ID is set; from then on, missing secrets fail the run rather than
+# skipping it. The secrets live in the `production` environment, which only `main` may deploy from.
 
 on:
   push:
@@ -19,39 +19,22 @@ concurrency:
 
 jobs:
   migrate:
+    if: vars.SUPABASE_PROJECT_ID != ''
     runs-on: ubuntu-latest
     environment: production
-    env:
-      SUPABASE_PROJECT_ID: ${{ vars.SUPABASE_PROJECT_ID }}
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
-      - name: Check the hosted project is configured
-        id: configured
-        run: |
-          if [ -z "$SUPABASE_PROJECT_ID" ] || [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_DB_PASSWORD" ]; then
-            echo "::notice::Hosted Supabase project not configured yet (docs/SETUP.md); skipping."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - if: steps.configured.outputs.ready == 'true'
-        uses: actions/checkout@v5
-      - if: steps.configured.outputs.ready == 'true'
-        uses: pnpm/action-setup@v4
-      - if: steps.configured.outputs.ready == 'true'
-        uses: actions/setup-node@v5
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
-      - if: steps.configured.outputs.ready == 'true'
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
-      - name: Show pending migrations
-        if: steps.configured.outputs.ready == 'true'
-        run: pnpm exec supabase db push --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD" --dry-run
-
+      # Only this step sees the secrets. The CLI reads SUPABASE_DB_PASSWORD itself and lists what it applies.
       - name: Apply migrations
-        if: steps.configured.outputs.ready == 'true'
-        run: pnpm exec supabase db push --project-ref "$SUPABASE_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ vars.SUPABASE_PROJECT_ID }}
+        run: pnpm exec supabase db push --project-ref "$SUPABASE_PROJECT_ID"

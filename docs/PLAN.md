@@ -87,7 +87,8 @@ Each phase ends deployed and usable.
 - Auth (email OTP code + magic link), owner-scoped RLS pattern, first migration, first pgTAP test.
 - CI: lint, typecheck, Vitest, pgTAP, Playwright, build; Cloudflare Pages PR previews; migrations to prod on merge.
 - Installable empty PWA shell.
-- **Done when:** I can sign in on my phone to an installed PWA, deployed from `main` by CI.
+- **Done when:** I can sign in on my phone to an installed PWA, deployed from `main` by Cloudflare Pages
+  ([hosted setup](SETUP.md)).
 
 ### Phase 1 — Library
 

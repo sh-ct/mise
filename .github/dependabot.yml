@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Keeps the workflows' actions current; their secrets-bearing jobs depend on them.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
