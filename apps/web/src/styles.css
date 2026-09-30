@@ -2,8 +2,8 @@
 @import './styles/fonts.css';
 @import 'tailwindcss' source('./');
 @import './styles/themes/_base.css';
-@import './styles/themes/market-stall.css';
 @import './styles/themes/bento.css';
+@import './styles/themes/market-stall.css';
 @import './styles/themes/night-kitchen.css';
 @import './styles/themes/enamel.css';
 @import './styles/themes/order-ticket.css';

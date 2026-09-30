@@ -48,11 +48,11 @@ describe('ThemeStore', () => {
     vi.useRealTimers();
   });
 
-  it('defaults to Market Stall following the device theme', () => {
+  it('defaults to Bento following the device theme', () => {
     const store = create();
-    expect(store.themeId()).toBe('market-stall');
+    expect(store.themeId()).toBe('bento');
     expect(store.appearance()).toBe('system');
-    expect(root.dataset['theme']).toBe('market-stall');
+    expect(root.dataset['theme']).toBe('bento');
     expect(root.dataset['mode']).toBe('light');
   });
 
@@ -66,13 +66,13 @@ describe('ThemeStore', () => {
 
   it('applies and persists explicit choices', () => {
     const store = create();
-    store.setTheme('bento');
+    store.setTheme('market-stall');
     store.setAppearance('dark');
     TestBed.tick();
-    expect(root.dataset['theme']).toBe('bento');
+    expect(root.dataset['theme']).toBe('market-stall');
     expect(root.dataset['mode']).toBe('dark');
     expect(JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) ?? '{}')).toEqual(
-      { themeId: 'bento', appearance: 'dark' },
+      { themeId: 'market-stall', appearance: 'dark' },
     );
   });
 
@@ -91,7 +91,7 @@ describe('ThemeStore', () => {
 
   it('survives corrupt storage', () => {
     localStorage.setItem(THEME_STORAGE_KEY, '{not json');
-    expect(create().themeId()).toBe('market-stall');
+    expect(create().themeId()).toBe('bento');
   });
 
   it('turns dark at 19:00 in time mode, via the minute clock or on returning to the app', () => {

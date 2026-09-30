@@ -5,7 +5,8 @@
 ## Context
 
 Five visual directions were explored (`docs/design/style-directions.html`), each with a light and dark theme.
-Market Stall is the starting choice, but the others should stay available, and switching later should be cheap.
+Bento is the default (it replaced Market Stall on 2026-09-30), but the
+others should stay available, and switching later should be cheap.
 
 ## Decision
 

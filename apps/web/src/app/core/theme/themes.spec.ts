@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { THEMES } from './themes';
+import { DEFAULT_THEME, THEMES } from './themes';
 
 // The Angular test runner starts in the workspace root.
 const WEB = existsSync('apps/web') ? 'apps/web' : '.';
@@ -71,5 +71,6 @@ describe('theme registry and stylesheets', () => {
     expect(list.match(/'([^']+)'/g)?.map((s) => s.slice(1, -1))).toEqual(
       THEMES.map((t) => t.id),
     );
+    expect(boot).toContain(`const DEFAULT_THEME = '${DEFAULT_THEME}';`);
   });
 });

@@ -35,7 +35,7 @@ test('shows a sidebar on desktop and a tab bar on phones and tablets', async ({
 test('applies and remembers the appearance choice', async ({ page }) => {
   await page.goto('/settings');
   const root = page.locator('html');
-  await expect(root).toHaveAttribute('data-theme', 'market-stall');
+  await expect(root).toHaveAttribute('data-theme', 'bento');
 
   await page.getByRole('radio', { name: /Always dark/ }).check();
   await expect(root).toHaveAttribute('data-mode', 'dark');
@@ -101,8 +101,11 @@ test.describe('before the app starts', () => {
   };
 
   test('applies a saved dark choice', async ({ page }) => {
-    const root = await boot(page, { themeId: 'bento', appearance: 'dark' });
-    await expect(root).toHaveAttribute('data-theme', 'bento');
+    const root = await boot(page, {
+      themeId: 'market-stall',
+      appearance: 'dark',
+    });
+    await expect(root).toHaveAttribute('data-theme', 'market-stall');
     await expect(root).toHaveAttribute('data-mode', 'dark');
   });
 
@@ -111,7 +114,7 @@ test.describe('before the app starts', () => {
   }) => {
     await page.emulateMedia({ colorScheme: 'dark' });
     const root = await boot(page, { themeId: 'sepia', appearance: 'auto' });
-    await expect(root).toHaveAttribute('data-theme', 'market-stall');
+    await expect(root).toHaveAttribute('data-theme', 'bento');
     await expect(root).toHaveAttribute('data-mode', 'dark');
   });
 

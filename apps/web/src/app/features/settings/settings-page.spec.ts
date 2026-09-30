@@ -65,7 +65,7 @@ describe('SettingsPage', () => {
     expect(
       (
         el.querySelector(
-          'input[name="theme"][value="market-stall"]',
+          'input[name="theme"][value="bento"]',
         ) as HTMLInputElement
       ).checked,
     ).toBe(true);
