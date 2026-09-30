@@ -30,6 +30,9 @@ others should stay available, and switching later should be cheap.
   families, arbitrary Tailwind values containing colours, and Tailwind's removed default palette, radii, shadows
   and fonts in `src/app`. A unit test checks every registered theme defines the contract in both modes. UI PRs
   also get a review focused on style consistency, token rules and UX.
+- **Static files that must hold literals**, because they're read before any CSS loads: the app icon
+  (`apps/web/icons/icon.svg`), the manifest colours, `theme-color` in `index.html`, and the canvas map in
+  `public/theme-boot.js`. Tests check the manifest and boot map against the theme files; the icon is hand-synced.
 
 ## Consequences
 

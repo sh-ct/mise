@@ -1,10 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readWebText as read } from '../../../testing/workspace-file';
 import { DEFAULT_THEME, THEMES } from './themes';
-
-// The Angular test runner starts in the workspace root.
-const WEB = existsSync('apps/web') ? 'apps/web' : '.';
-const read = (path: string) => readFileSync(join(WEB, path), 'utf8');
 
 const COLOUR_TOKENS = [
   'canvas',
@@ -65,12 +60,21 @@ describe('theme registry and stylesheets', () => {
       expect(styles).toContain(`./styles/themes/${id}.css`);
   });
 
-  it('lists the same themes in the pre-boot script', () => {
+  it('lists the same themes and canvas colours in the pre-boot script', () => {
     const boot = read('public/theme-boot.js');
-    const list = /const THEMES = \[([^\]]*)\]/.exec(boot)?.[1] ?? '';
-    expect(list.match(/'([^']+)'/g)?.map((s) => s.slice(1, -1))).toEqual(
-      THEMES.map((t) => t.id),
-    );
+    const entries = [
+      ...boot.matchAll(/'?([\w-]+)'?: \['(#[0-9a-f]+)', '(#[0-9a-f]+)'\]/gi),
+    ];
+    expect(entries.map((m) => m[1])).toEqual(THEMES.map((t) => t.id));
+    for (const [, id, light, dark] of entries) {
+      const css = read(`src/styles/themes/${id}.css`);
+      const canvas = (selector: string) =>
+        /--ds-canvas:\s*(#[0-9a-f]+)/i.exec(block(css, selector) ?? '')?.[1];
+      expect(light, `${id} light`).toBe(canvas(`[data-theme='${id}']`));
+      expect(dark, `${id} dark`).toBe(
+        canvas(`[data-theme='${id}'][data-mode='dark']`),
+      );
+    }
     expect(boot).toContain(`const DEFAULT_THEME = '${DEFAULT_THEME}';`);
   });
 });

@@ -185,7 +185,21 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 
 ### Offline read
 
-- Angular service worker: app shell + static assets; image `dataGroups` with a size cap.
+- Angular service worker (production builds, `apps/web/ngsw-config.json`): the app shell is prefetched, icons
+  and fonts cached on first use; image `dataGroups` with a size cap come with offline recipes. A new version
+  downloads in the background and a toast offers "Update now" or "Later"; the user picks the moment
+  (`AppUpdateStore`, started at boot). Cook mode should hide the toast when it arrives.
+- Installable: `public/manifest.webmanifest` plus home-screen meta tags in `index.html`, guarded by
+  `manifest.spec.ts`. Icons are rendered from `apps/web/icons/icon.svg` by `pnpm icons`. The splash screen uses
+  the icon's tile colour, so dark-mode users don't get a white flash; `theme-boot.js` sets `theme-color` before
+  Angular starts.
+- Rolling back a bad deploy: deploy `node_modules/@angular/service-worker/safety-worker.js` as
+  `ngsw-worker.js`. It unregisters the worker and clears its caches on every client; then deploy a fixed
+  build. (Deleting `ngsw.json` doesn't work on Cloudflare Pages: its SPA fallback serves `index.html` instead of
+  a 404.)
+- Bundle: supabase-js is needed at startup by the route guards, so the initial warning budget is 800 kB (the
+  error budget stays 1 MB).
+- When offline data (Dexie recipes, cached images) arrives, signing out must clear it, for shared devices.
 - Recipe data: repositories read-through to Dexie; recently opened + explicitly **pinned** recipes kept.
 - Offline edits are disabled with a clear banner. See [ADR 0003](adr/0003-offline-read.md).
 - Auth offline: if the access token has expired, supabase-js can't refresh it offline and reports no session,
@@ -229,6 +243,8 @@ preference. It's client-only and persisted to IndexedDB so a reload mid-cook res
 - The edge function fetching URLs validates scheme, blocks private IP ranges (SSRF), caps response size and timeout.
 - Response headers (CSP, nosniff, referrer and permissions policies) are in `apps/web/public/_headers` for
   Cloudflare Pages. The CSP allows only same-origin scripts and fonts plus Supabase for data and images.
+  Keep Cloudflare's HTML rewriting (Web Analytics auto-injection, email obfuscation, etc.) off: it would be
+  blocked by the CSP and would break the service worker's hash check, so updates would never install.
 - No secrets in the frontend beyond the Supabase anon key. The repo is public — secrets live only in
   GitHub Actions / Cloudflare / Supabase settings.
 
