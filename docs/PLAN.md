@@ -57,7 +57,7 @@ library, then cook from it with a focused, hands-free-friendly, step-at-a-time k
 ### Look and feel
 
 - Design tokens for everything; components use only tokens (ADR 0007). Themes are light/dark pairs.
-- Starting theme: **Market Stall** (light and dark). Bento, Night Kitchen, Enamel and Order Ticket are kept as
+- Default theme: **Bento** (light and dark). Market Stall, Night Kitchen, Enamel and Order Ticket are kept as
   alternative themes (`docs/design/style-directions.html`) and selectable under Settings → Style.
 - Appearance: always light, always dark, auto by time of day (dark 7pm–7am), or auto by device theme (default).
 - Mobile first; tablets and desktop get a sidebar and wider layouts. Library keeps recipe photos.
@@ -156,6 +156,6 @@ Step markup → none; timers & glossary detected at render time.
 
 ## Resolved (2026-09-30)
 
-Theme → Market Stall light/dark first, all five directions kept · Tokens → every visual value is a token; Tailwind
+Theme → Bento light/dark by default (was Market Stall), all five directions kept · Tokens → every visual value is a token; Tailwind
 wired at theme level; enforced by `nx run web:tokens` · Appearance → light / dark / time / device · Cook mode →
 big type, stand mode, step photos behind a nav-row camera button · Library photos → kept.

@@ -3,12 +3,13 @@
 // THEMES in themes.ts; themes.spec.ts checks that.
 (function () {
   const THEMES = [
-    'market-stall',
     'bento',
+    'market-stall',
     'night-kitchen',
     'enamel',
     'order-ticket',
   ];
+  const DEFAULT_THEME = 'bento';
   const APPEARANCES = ['light', 'dark', 'time', 'system'];
   const root = document.documentElement;
   let prefs = {};
@@ -17,7 +18,8 @@
   } catch {
     prefs = {};
   }
-  const theme = THEMES.indexOf(prefs.themeId) >= 0 ? prefs.themeId : THEMES[0];
+  const theme =
+    THEMES.indexOf(prefs.themeId) >= 0 ? prefs.themeId : DEFAULT_THEME;
   const appearance =
     APPEARANCES.indexOf(prefs.appearance) >= 0 ? prefs.appearance : 'system';
   const hour = new Date().getHours();
