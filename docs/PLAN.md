@@ -56,6 +56,11 @@ library, then cook from it with a focused, hands-free-friendly, step-at-a-time k
 - Google OAuth, passkeys.
 - Background timer alerts via scheduled Web Push.
 
+## Known limitations
+
+- "Juice of 1 lemon" / "zest of 2 oranges" parse without a quantity, so they don't scale. Needs a display
+  model beyond qty/unit/item (e.g. a "part of" prefix); revisit with the editor.
+
 ## Ideas parking lot
 
 - **Simplify mode** — for beginners, rewrite jargon into plain instructions ("reduce" → "simmer uncovered

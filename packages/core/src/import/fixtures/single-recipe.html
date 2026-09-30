@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Fixture: single Recipe object, multi-type, instructions as one numbered text blob. Content written for tests. -->
+<html>
+  <head>
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org/",
+        "@type": ["Recipe", "NewsArticle"],
+        "name": "Fluffy Pancakes",
+        "url": "https://example.test/fluffy-pancakes",
+        "image": {
+          "@type": "ImageObject",
+          "url": "https://example.test/pancakes.jpg",
+          "width": 1200
+        },
+        "author": [
+          { "@type": "Person", "name": "Alex" },
+          { "@type": "Person", "name": "Jo" }
+        ],
+        "recipeYield": "Makes 8 pancakes",
+        "totalTime": "PT0H25M",
+        "recipeIngredient": [
+          "1 1/2 cups (190 g) all-purpose flour",
+          "3 1/2 tsp baking powder",
+          "1 tbsp sugar",
+          "1/4 tsp salt",
+          "1 1/4 cups milk",
+          "1 egg",
+          "3 tbsp butter, melted"
+        ],
+        "recipeInstructions": "1. Whisk the flour, baking powder, sugar and salt in a large bowl. 2. Make a well in the centre and pour in the milk, egg and melted butter; mix until smooth.\n3. Heat a lightly oiled pan over medium-high heat. Pour or scoop about 1/4 cup of batter per pancake and cook for 2-3 minutes per side until golden."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": []
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -16,6 +16,7 @@ Recipe PWA — capture (manual / URL / text / scan), organise, and cook step-by-
 - Every user-owned table has `owner_id` + RLS; add an RLS test with every new table.
 - Every import path produces a `RecipeDraft` that opens in the editor — never save parsed data directly.
 - Ingredients always keep `raw_text`.
+- Recipe text is untrusted (imports): render with text bindings / `StepSegment`s, never `[innerHTML]`.
 - Voice and AI are progressive enhancements; tap navigation must always work.
 
 ## Commands
